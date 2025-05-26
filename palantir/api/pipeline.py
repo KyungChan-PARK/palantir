@@ -6,6 +6,7 @@ import yaml
 
 router = APIRouter()
 
+
 @router.post("/pipeline/validate")
 def validate_pipeline(file: UploadFile = File(...)):
     content = file.file.read()
@@ -16,14 +17,15 @@ def validate_pipeline(file: UploadFile = File(...)):
     except Exception as e:
         return {"valid": False, "error": str(e)}
 
+
 @router.post("/pipeline/submit")
 def submit_pipeline(file: UploadFile = File(...)):
     content = file.file.read()
     data = yaml.safe_load(content)
     try:
-        schema = PipelineSchema(**data)
+        PipelineSchema(**data)
         dag = transpile_yaml_to_dag(data)
         add_pipeline_job(dag)
         return {"submitted": True}
     except Exception as e:
-        return {"submitted": False, "error": str(e)} 
+        return {"submitted": False, "error": str(e)}

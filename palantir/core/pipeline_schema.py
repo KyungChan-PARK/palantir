@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Dict, Any
+
 
 class Task(BaseModel):
     id: str
@@ -7,7 +8,8 @@ class Task(BaseModel):
     params: Dict[str, Any]
     depends_on: List[str] = []
 
+
 class PipelineSchema(BaseModel):
     name: str
     description: str = ""
-    tasks: List[Task] 
+    tasks: List[Task]

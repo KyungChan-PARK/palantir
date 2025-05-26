@@ -6,13 +6,17 @@ import subprocess
 import weaviate
 import logging
 
-SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX")
+SLACK_WEBHOOK_URL = os.environ.get(
+    "SLACK_WEBHOOK_URL",
+    "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX",
+)
 BACKUP_ROOT = "C:/palantir/backups"
 WEAVIATE_URL = "http://localhost:8080"
 NEO4J_ADMIN = "neo4j-admin"  # PATH에 있다고 가정
 NEO4J_DB = "neo4j"
 NEO4J_USER = "neo4j"
 NEO4J_PASS = "test"
+
 
 def backup_weaviate():
     today = datetime.now().strftime("%Y%m%d")
@@ -25,9 +29,10 @@ def backup_weaviate():
             f.write("[OK] weaviate snapshot success")
         print(f"[BACKUP] weaviate → {backup_dir}")
         notify_slack(f"Weaviate 백업 완료: {backup_dir}")
-    except Exception as e:
+    except Exception:
         logging.exception("[BACKUP][ERROR] weaviate")
         raise
+
 
 def backup_neo4j():
     today = datetime.now().strftime("%Y%m%d")
@@ -38,9 +43,10 @@ def backup_neo4j():
         subprocess.check_call(cmd, shell=True)
         print(f"[BACKUP] neo4j → {backup_dir}")
         notify_slack(f"Neo4j 백업 완료: {backup_dir}")
-    except Exception as e:
+    except Exception:
         logging.exception("[BACKUP][ERROR] neo4j")
         raise
+
 
 def rolling_delete(days=30):
     cutoff = datetime.now() - timedelta(days=days)
@@ -55,6 +61,7 @@ def rolling_delete(days=30):
             except Exception:
                 continue
 
+
 def notify_slack(msg):
     # 실제 슬랙 Webhook 대신 print + 요청
     print(f"[SLACK][MOCK] {msg}")
@@ -63,7 +70,8 @@ def notify_slack(msg):
     except Exception:
         pass
 
+
 def register_backup_jobs(scheduler):
     scheduler.add_job(backup_weaviate, "cron", day_of_week="sun", hour=3)
     scheduler.add_job(backup_neo4j, "cron", day_of_week="sun", hour=4)
-    scheduler.add_job(rolling_delete, "cron", day_of_week="sun", hour=5) 
+    scheduler.add_job(rolling_delete, "cron", day_of_week="sun", hour=5)
