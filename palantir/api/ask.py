@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict
 from palantir.core.llm_manager import LLMManager
 from palantir.core.policy_guard import verify_jwt, limiter, cache_response
 from slowapi.util import get_remote_address
