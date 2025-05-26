@@ -1,0 +1,64 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          python install_dependencies.py
+      - name: Lint (ruff)
+        run: ruff .
+      - name: Format (black)
+        run: black --check --line-length 88 .
+      - name: Pre-boot port check
+        run: |
+          netstat -ano | findstr :8080 > port8080.txt || exit 0
+          for /f "tokens=5" %%a in (port8080.txt) do taskkill /PID %%a /F
+          netstat -ano | findstr :7687 > port7687.txt || exit 0
+          for /f "tokens=5" %%a in (port7687.txt) do taskkill /PID %%a /F
+      - name: Test & Coverage (parallel)
+        run: pytest --maxfail=2 -n auto --cov=app --cov-fail-under=92
+      - name: Health check
+        run: |
+          uvicorn main:app --port 8000 &
+          sleep 5
+          curl -f http://localhost:8000/status
+          curl -f http://localhost:8000/metrics
+          python -c "import requests; r = requests.get('http://localhost:8000/status'); d = r.json(); assert all(d[k]=='ok' or k=='self_improve' for k in ['app','weaviate','neo4j','self_improve']), d"
+          curl -f http://localhost:3000/api/health
+      - name: Upload error reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-reports
+          path: error_report_*.md
+      - name: Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'palantir'
+          path: '.'
+          format: 'HTML'
+          out: 'dependency-check-report'
+          failOnCVSS: '7'
+          data: 'https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/odc-data-2025-05.tar.gz'
+      - name: Upload dependency-check report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: dependency-check-report
+      - name: Reflex SPA E2E
+        shell: pwsh
+        run: |
+          cd pipeline_ui
+          Start-Process -FilePath python -ArgumentList '-m','reflex','run'
+          Start-Sleep 30
+          python ../tests/e2e_upload_report.py 
