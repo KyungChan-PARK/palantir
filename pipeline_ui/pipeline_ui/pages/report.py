@@ -1,6 +1,6 @@
 import reflex as rx
 import requests
-import json
+
 
 class ReportState(rx.State):
     job_id: str = "1"
@@ -27,18 +27,25 @@ class ReportState(rx.State):
             self.plot_html = f"<h3>Job {self.job_id} not found</h3>"
 
     def approve(self):
-        resp = requests.post(f"http://localhost:8000/report/{self.job_id}/action", data={"action": "approve"})
+        resp = requests.post(
+            f"http://localhost:8000/report/{self.job_id}/action",
+            data={"action": "approve"},
+        )
         if resp.status_code == 200 or resp.status_code == 303:
             self.approved = True
             self.rejected = False
         self.fetch_plot()
 
     def reject(self):
-        resp = requests.post(f"http://localhost:8000/report/{self.job_id}/action", data={"action": "reject"})
+        resp = requests.post(
+            f"http://localhost:8000/report/{self.job_id}/action",
+            data={"action": "reject"},
+        )
         if resp.status_code == 200 or resp.status_code == 303:
             self.rejected = True
             self.approved = False
         self.fetch_plot()
+
 
 def report():
     state = ReportState()
@@ -46,14 +53,25 @@ def report():
         rx.vstack(
             rx.html(state.plot_html),
             rx.hstack(
-                rx.button("Approve", color_scheme="green", on_click=state.approve, is_disabled=state.approved),
-                rx.button("Reject", color_scheme="red", on_click=state.reject, is_disabled=state.rejected),
+                rx.button(
+                    "Approve",
+                    color_scheme="green",
+                    on_click=state.approve,
+                    is_disabled=state.approved,
+                ),
+                rx.button(
+                    "Reject",
+                    color_scheme="red",
+                    on_click=state.reject,
+                    is_disabled=state.rejected,
+                ),
             ),
             rx.cond(state.approved, rx.text("✅ Approved!", color="green")),
             rx.cond(state.rejected, rx.text("❌ Rejected!", color="red")),
         ),
-        height="100vh"
+        height="100vh",
     )
 
+
 app = rx.App()
-app.add_page(report, route="/report/[job_id]") 
+app.add_page(report, route="/report/[job_id]")
