@@ -103,37 +103,28 @@ IMG_BYTES = __import__('base64').b64decode("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIA
 
 
 @pytest.mark.asyncio
-
-@pytest.mark.parametrize("filename,mime,content,expect",[ 
-
+@pytest.mark.parametrize("filename,mime,content,expect",[
     ("test.csv", "text/csv",    CSV_BYTES,  "table"),
-
     ("test.json", "application/json", JSON_BYTES,"json"),
-
     ("test.pdf", "application/pdf",  PDF_BYTES,"pdf"),
-
     ("test.png", "image/png",    IMG_BYTES,  "image"),
-
     ("test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", XLSX_BYTES,"table"),
-
     ("test.bin", "application/octet-stream", b"rawdata", "raw"),
-
 ])
-
-async def test_preprocess_file_branches(filename, mime, content, expect):
-
-    res = await pf.preprocess_file(filename, mime, content, job_id=123)
-
+async def test_preprocess_file_branches(filename, mime, content, expect, tmp_path):
+    # 임시 파일 생성 및 삭제를 tmp_path로 대체
+    file_path = tmp_path / filename
+    with open(file_path, "wb") as f:
+        f.write(content)
+    res = await pf.preprocess_file(str(file_path), mime, content, job_id=123)
     assert res["type"] == expect
-
-    assert res["job_id"] == 123 
+    assert res["job_id"] == 123
 
 
 
 from pytest import MonkeyPatch
 
 @pytest.mark.asyncio
-
 async def test_preprocess_excel_local_mock(monkeypatch: MonkeyPatch):
 
     import pandas as pd
