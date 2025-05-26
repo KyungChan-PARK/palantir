@@ -1,4 +1,8 @@
 import xml.etree.ElementTree as ET, pathlib, re, os
+if os.getenv("GENERATE_COVERAGE_STUBS") != "1":
+    print("[gen_missing_tests] 런타임 자동 생성 방지: 환경변수 미설정")
+    exit(0)
+
 cov = pathlib.Path('coverage.xml')
 if not cov.exists():
     os.system('pytest --cov=app --cov-report=xml')

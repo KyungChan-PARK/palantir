@@ -1,4 +1,8 @@
-import importlib, inspect, pathlib, traceback, sys
+import importlib, inspect, pathlib, traceback, sys, os
+
+if os.getenv("GENERATE_COVERAGE_STUBS") != "1":
+    print("[gen_param_tests] 런타임 자동 생성 방지: 환경변수 미설정")
+    exit(0)
 
 targets = [
     'palantir.core.preprocessor_factory',
