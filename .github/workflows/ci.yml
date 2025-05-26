@@ -27,7 +27,7 @@ jobs:
           netstat -ano | findstr :7687 > port7687.txt || exit 0
           for /f "tokens=5" %%a in (port7687.txt) do taskkill /PID %%a /F
       - name: Test & Coverage (parallel)
-        run: pytest --maxfail=2 -n auto --cov=app --cov-fail-under=92
+        run: pytest -n auto --dist loadfile --cov=app --cov-fail-under=92
       - name: Health check
         run: |
           uvicorn main:app --port 8000 &
