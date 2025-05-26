@@ -4,7 +4,7 @@ uvicorn[standard]>=0.30,<0.31
 sqlmodel>=0.0.18
 httpx>=0.28,<1.0
 packaging>=24.0
-numpy>=1.27
+numpy>=2.0.0,<3.0
 pandas==2.2.3
 plotly>=5.22
 reflex==0.7.12
