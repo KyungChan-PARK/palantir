@@ -9,10 +9,27 @@ set UI_REQ=%PROJECT_ROOT%\pipeline_ui\requirements.txt
 set PKG_ROOT=%PROJECT_ROOT%\offline_preparation\python_packages
 set MAIN_PKG=%PKG_ROOT%\main_app_packages
 set UI_PKG=%PKG_ROOT%\pipeline_ui_packages
+set VENV=.venv
+set PKG_DIR=offline_preparation\python_packages\unified
 
 call :log [1] 가상환경 생성 중...
-%PYEXE% -m venv %VENV_PATH% >> %LOGFILE% 2>&1
-if errorlevel 1 goto error
+if not exist %VENV% (
+    python -m venv %VENV%
+)
+call %VENV%\Scripts\activate.bat
+if exist %PKG_DIR% (
+    dir /b %PKG_DIR%\*.whl >nul 2>nul
+    if %errorlevel%==0 (
+        echo ▶ 오프라인 패키지 설치
+        pip install --no-index --find-links=%PKG_DIR% ^
+            -r requirements.txt ^
+            -r pipeline_ui\requirements.txt
+    ) else (
+        echo ⚠ 오프라인 저장소 비어 있음 → PyPI fallback
+        pip install -r requirements.txt ^
+                    -r pipeline_ui\requirements.txt
+    )
+)
 
 set PATH=%VENV_PATH%\Scripts;%PATH%
 
@@ -28,7 +45,6 @@ call :log [4] Codex 설정 파일 생성...
 (echo {"model": "codex-o3-latest", "workdir": "C:\\palantir"}) > %PROJECT_ROOT%\.codex-config.json
 
 call :log [5] 설치 검증 (pytest) ...
-%VENV_PATH%\Scripts\activate.bat
 set PYTHONPATH=%PROJECT_ROOT% && %VENV_PATH%\Scripts\python.exe -m pytest -q > %PROJECT_ROOT%\activate_tests.log
 
 echo [✔] Offline env ready

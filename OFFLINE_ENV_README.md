@@ -1,4 +1,47 @@
-# Palantir 오프라인 개발환경 구축 및 Codex 연동 가이드
+# Palantir 오프라인 개발환경 구축 가이드
+
+## 폴더 트리
+```
+palantir/
+├── .codex-config.json
+├── requirements.txt
+├── pipeline_ui/
+│   └── requirements.txt
+├── offline_preparation/
+│   ├── python_packages/
+│   │   └── unified/
+│   │       ├── fastapi-0.115.12-py3-none-any.whl
+│   │       ├── ...
+│   ├── download_all_packages.ps1
+│   ├── README.md
+│   └── install_test.log
+├── setup_codex_env.ps1
+├── setup_codex_env.bat
+└── OFFLINE_ENV_README.md
+```
+
+## 설치 방법
+1. **오프라인 패키지 폴더(`offline_preparation/python_packages/unified/`)**에 모든 `.whl`/`.tar.gz` 파일이 들어있는지 확인
+2. PowerShell에서 `setup_codex_env.ps1` 실행  
+   (또는 CMD에서 `setup_codex_env.bat` 실행)
+3. 자동으로 가상환경 생성, 패키지 설치, Codex 설정, 테스트까지 진행됨
+
+## Codex 실행 예시
+```powershell
+& .venv\Scripts\activate
+codex --auto-edit
+```
+
+## FAQ
+- **패키지 설치 실패:**  
+  → `offline_preparation/python_packages/unified/` 폴더가 비어있지 않은지 확인  
+- **import 오류:**  
+  → PYTHONPATH가 현재 폴더로 잡혀 있는지 확인  
+- **테스트 실패:**  
+  → `offline_preparation/install_test.log`에서 에러 메시지 확인
+
+## 스크린샷 안내
+- 설치 성공/실패, Codex 실행 화면 등 캡처하여 첨부
 
 ## 1. 폴더 트리 및 구성 설명
 
@@ -8,7 +51,7 @@ C:\palantir\
 │   ├── python_packages\
 │   │   ├── main_app_packages\
 │   │   └── pipeline_ui_packages\
-│   ├── models\
+│   │   └── unified\
 │   │   └── ... (모델 파일, MODEL_MANIFEST.json)
 │   └── ...
 ├── setup_codex_env.ps1

@@ -1,10 +1,1 @@
-﻿{
-    "workdir":  "C:\\palantir",
-    "defaults":  {
-                     "shell":  "powershell",
-                     "timeout":  120
-                 },
-    "interpreter":  "C:\\palantir\\.venv\\Scripts\\python.exe",
-    "model":  "codex-o3-latest",
-    "approval":  "auto-edit"
-}
+﻿{"model": "codex-o3-latest", "workdir": "C:\\palantir"}

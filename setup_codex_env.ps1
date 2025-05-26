@@ -11,6 +11,8 @@ $UiReq = "$ProjectRoot\pipeline_ui\requirements.txt"
 $PkgRoot = "$ProjectRoot\offline_preparation\python_packages"
 $MainPkg = "$PkgRoot\main_app_packages"
 $UiPkg = "$PkgRoot\pipeline_ui_packages"
+$VENV = ".venv"
+$PKG_DIR = "offline_preparation\python_packages\unified"
 
 function Log($msg) {
     $msg | Tee-Object -FilePath $LogFile -Append
@@ -18,19 +20,27 @@ function Log($msg) {
 
 try {
     Log "[1] 가상환경 생성 중..."
-    & $PyExe -m venv $VenvPath | Tee-Object -FilePath $LogFile -Append
-    $env:VIRTUAL_ENV = $VenvPath
-    $env:PATH = "$VenvPath\Scripts;" + $env:PATH
+    if (-Not (Test-Path $VENV)) {
+        python -m venv $VENV
+    }
+    & "$VENV\Scripts\activate"
     Log "[2] pip 오프라인 설치 (메인) ..."
-    & "$VenvPath\Scripts\pip.exe" install --no-index --find-links=$MainPkg -r $MainReq 2>&1 | Tee-Object -FilePath $LogFile -Append
-    Log "[3] pip 오프라인 설치 (UI) ..."
-    & "$VenvPath\Scripts\pip.exe" install --no-index --find-links=$UiPkg -r $UiReq 2>&1 | Tee-Object -FilePath $LogFile -Append
-    Log "[4] Codex 설정 파일 생성..."
+    if ((Test-Path $PKG_DIR) -and ((Get-ChildItem $PKG_DIR).Count -gt 0)) {
+        Write-Host "▶ 오프라인 패키지 설치"
+        pip install --no-index --find-links="$PKG_DIR" `
+            -r requirements.txt `
+            -r pipeline_ui\requirements.txt
+    } else {
+        Write-Host "⚠  오프라인 저장소 비어 있음 → PyPI fallback"
+        pip install -r requirements.txt `
+                    -r pipeline_ui\requirements.txt
+    }
+    Log "[3] Codex 설정 파일 생성..."
     $codexConf = '{"model": "codex-o3-latest", "workdir": "C:\\palantir"}'
     Set-Content -Path "$ProjectRoot\.codex-config.json" -Value $codexConf -Encoding UTF8
-    Log "[5] 설치 검증 (pytest) ..."
-    & "$VenvPath\Scripts\Activate.ps1"
-    Start-Process -NoNewWindow -Wait -FilePath "$VenvPath\Scripts\python.exe" -ArgumentList "-m", "pytest", "-q" -WorkingDirectory $ProjectRoot -RedirectStandardOutput "$ProjectRoot\activate_tests.log" -Environment @{"PYTHONPATH" = "$ProjectRoot"}
+    Log "[4] 설치 검증 (pytest) ..."
+    $env:PYTHONPATH = "$PWD"
+    pytest -q | Tee-Object -FilePath offline_preparation\install_test.log
     Log "[✔] Offline env ready"
     Write-Host "[✔] Offline env ready"
 } catch {
