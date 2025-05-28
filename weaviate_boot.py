@@ -1,7 +1,9 @@
-import weaviate.embedded
-import time
-import requests
 import os
+import time
+
+import requests
+import weaviate.embedded
+
 from palantir.core.config import settings
 
 WEAVIATE_PATH = os.path.join(os.getcwd(), "weaviate_data")
@@ -27,4 +29,4 @@ for _ in range(30):
     time.sleep(1)
 else:
     print("[FAIL] Weaviate not ready after 30s")
-    exit(1) 
+    exit(1)

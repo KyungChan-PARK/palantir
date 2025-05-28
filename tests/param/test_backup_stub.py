@@ -1,6 +1,5 @@
 # AUTO-STUB: palantir.core.backup import 실패
 
-import pytest
 
 def test_import_app_core_backup():
 

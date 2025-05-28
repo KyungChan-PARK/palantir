@@ -1,8 +1,8 @@
 """The dashboard page."""
 
-from pipeline_ui.templates import template
-
 import reflex as rx
+
+from pipeline_ui.templates import template
 
 
 @template(route="/dashboard", title="Dashboard")

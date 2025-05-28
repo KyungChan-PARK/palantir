@@ -1,6 +1,8 @@
-from typing import Dict, Any
-from .config import settings
 import logging
+from typing import Any, Dict
+
+from .config import settings
+
 logger = logging.getLogger(__name__)
 
 def transpile_yaml_to_dag(yaml_dict: Dict[str, Any]):
@@ -11,4 +13,4 @@ def transpile_yaml_to_dag(yaml_dict: Dict[str, Any]):
     return {
         "dag_name": yaml_dict.get("name"),
         "tasks": yaml_dict.get("tasks", []),
-    } 
+    }

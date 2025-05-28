@@ -1,6 +1,7 @@
 import os
-from sentence_transformers import SentenceTransformer
+
 import nltk
+from sentence_transformers import SentenceTransformer
 
 # import spacy # Spacy 모델이 필요하고 식별된 경우 주석 해제
 

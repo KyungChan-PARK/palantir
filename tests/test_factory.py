@@ -1,9 +1,4 @@
-import pytest
-from palantir.core.preprocessor_factory import preprocess_file
-import pandas as pd
-import json
-
-@pytest.mark.asyncio
+import jsonimport pandas as pdimport pytestfrom palantir.core.preprocessor_factory import preprocess_file@pytest.mark.asyncio
 async def test_preprocess_csv():
     df = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
     content = df.to_csv(index=False).encode()
@@ -28,4 +23,4 @@ async def test_preprocess_excel():
     content = buf.getvalue()
     result = await preprocess_file("test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", content, "job3")
     assert result["type"] == "table"
-    assert "a" in result["data"] 
+    assert "a" in result["data"]

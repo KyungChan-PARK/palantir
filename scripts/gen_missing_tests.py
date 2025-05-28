@@ -1,6 +1,6 @@
 import os
 import pathlib
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElementTree
 
 if os.getenv("GENERATE_COVERAGE_STUBS") != "1":
     print("[gen_missing_tests] 런타임 자동 생성 방지: 환경변수 미설정")
@@ -9,7 +9,7 @@ if os.getenv("GENERATE_COVERAGE_STUBS") != "1":
 cov = pathlib.Path("coverage.xml")
 if not cov.exists():
     os.system("pytest --cov=app --cov-report=xml")
-tree = ET.parse("coverage.xml")
+tree = ElementTree.parse("coverage.xml")
 root = tree.getroot()
 for cls in root.iter("class"):
     fname = cls.attrib["filename"]

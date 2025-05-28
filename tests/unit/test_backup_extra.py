@@ -9,4 +9,4 @@ def test_rolling_delete_no_files(monkeypatch):
 def test_notify_slack_exception(monkeypatch):
     from palantir.core import backup
     monkeypatch.setattr(backup.requests, "post", lambda *a, **k: (_ for _ in ()).throw(Exception("fail")))
-    backup.notify_slack("msg") 
+    backup.notify_slack("msg")

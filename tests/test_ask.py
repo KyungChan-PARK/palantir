@@ -1,12 +1,8 @@
-import pytest
 
 from fastapi.testclient import TestClient
-
-from palantir import app
-
 from jose import jwt
 
-
+from palantir import app
 
 SECRET_KEY = "palantir-secret"
 
@@ -48,4 +44,4 @@ def test_ask_unauthorized():
 
     res = client.post("/ask", json={"query": "hi"})
 
-    assert res.status_code == 403 or res.status_code == 401 
+    assert res.status_code == 403 or res.status_code == 401

@@ -1,10 +1,11 @@
+import logging
 import os
 import shutil
-import requests
-from datetime import datetime, timedelta
 import subprocess
+from datetime import datetime, timedelta
+
+import requests
 import weaviate
-import logging
 
 SLACK_WEBHOOK_URL = os.environ.get(
     "SLACK_WEBHOOK_URL",

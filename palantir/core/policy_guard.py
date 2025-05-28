@@ -1,10 +1,12 @@
+from functools import wraps
+
 from fastapi import Depends, HTTPException, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from jose import jwt, JWTError
+
 from palantir.core.cache import get_cache
-from functools import wraps
 
 SECRET_KEY = "palantir-secret"  # 실제 운영 시 환경변수로 관리
 ALGORITHM = "HS256"
@@ -53,4 +55,4 @@ def cache_response(func):
         result = await func(*args, **kwargs)
         cache[cache_key] = result
         return result
-    return wrapper 
+    return wrapper

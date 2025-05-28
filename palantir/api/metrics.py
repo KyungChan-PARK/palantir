@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Response
 import os
+
+from fastapi import APIRouter, Response
 
 router = APIRouter()
 
@@ -9,4 +10,4 @@ def metrics_self_improve():
     if not os.path.exists(path):
         return Response(status_code=204)
     with open(path) as f:
-        return Response(f.read(), media_type="text/plain") 
+        return Response(f.read(), media_type="text/plain")

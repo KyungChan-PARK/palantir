@@ -1,9 +1,9 @@
 """The home page of the app."""
 
+import reflex as rx
+
 from pipeline_ui import styles
 from pipeline_ui.templates import template
-
-import reflex as rx
 
 
 @template(route="/", title="Home", image="/github.svg")

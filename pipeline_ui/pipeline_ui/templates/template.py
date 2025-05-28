@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from pipeline_ui import styles
-from pipeline_ui.components.sidebar import sidebar
 from typing import Callable
 
 import reflex as rx
+
+from pipeline_ui import styles
+from pipeline_ui.components.sidebar import sidebar
 
 # Meta tags for the app.
 default_meta = [
