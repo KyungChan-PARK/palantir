@@ -3,10 +3,6 @@ addopts = "-p no:cacheprovider"
 
 [tool.ruff]
 line-length = 120
-
-[tool.ruff.lint]
+exclude = [".venv", "venv", "build", "dist", "__pycache__", "docs/_build"]
 select = ["E", "F", "I", "N"]
-ignore = ["E501"]
-
-[tool.ruff]
-exclude = [".venv", "venv", "build", "dist", "__pycache__", "docs/_build"] 
+ignore = ["E501"] 
