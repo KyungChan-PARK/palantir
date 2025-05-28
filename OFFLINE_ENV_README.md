@@ -121,4 +121,19 @@ codex --auto-edit
 
 ---
 
-문의/지원 필요 시 Sidebar Codex 또는 관리자에게 연락하세요. 
+문의/지원 필요 시 Sidebar Codex 또는 관리자에게 연락하세요.
+
+## [중요] NumPy 2.2.x 및 오프라인 설치 안내
+
+- Python 3.13 환경에서는 반드시 numpy 2.2.6 wheel이 deps/ 폴더에 포함되어야 합니다.
+- requirements.txt, resolved.txt, deps/가 모두 최신이어야 하며, 아래 명령어로 오프라인 설치를 진행하세요.
+
+```bash
+python3.13 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python -m pip install -U pip
+python -m pip install --no-index --find-links=deps -r requirements.txt
+pytest -q
+```
+
+- NumPy 2.2.x 미만 버전은 Python 3.13용 wheel이 없어 설치가 불가합니다. 

@@ -73,4 +73,29 @@ loki:
 - `.github/workflows/ci.yml` 자동화
 
 ## 버전
-- v5.0 (2025) 
+- v5.0 (2025)
+
+## 오프라인 설치 안내 (Python 3.13 + NumPy 2.2.x)
+
+이 프로젝트는 완전 오프라인 환경에서 설치 및 실행이 가능합니다.
+
+### 필수 조건
+- Python 3.13
+- `deps/` 폴더에 모든 wheel 파일(특히 numpy-2.2.6-cp313-*.whl 포함)
+
+### 설치 방법
+```bash
+python3.13 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+python -m pip install -U pip
+python -m pip install --no-index --find-links=deps -r requirements.txt
+pytest -q  # 모든 테스트 통과 확인
+```
+
+### NumPy 2.2.x 주의사항
+- Python 3.13용 공식 wheel은 2.2.0 이상부터 제공됩니다.
+- 반드시 `deps/`에 numpy-2.2.6-cp313-*.whl이 존재해야 오프라인 설치가 가능합니다.
+
+### Codex/Web Codex 환경 변수 예시
+- PIP_NO_INDEX=1
+- PIP_FIND_LINKS=/workspace/palantir/deps
