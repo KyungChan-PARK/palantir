@@ -14,8 +14,9 @@ jobs:
         with:
           python-version: '3.13'
       - name: Install dependencies
-        run: |
-          python install_dependencies.py
+        run: pip install -r requirements.txt
+      - name: Install ruff
+        run: pip install --upgrade ruff
       - name: Lint (ruff)
         run: ruff .
       - name: Format (black)
