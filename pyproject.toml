@@ -1,2 +1,8 @@
 [tool.pytest.ini_options]
-addopts = "-p no:cacheprovider" 
+addopts = "-p no:cacheprovider"
+
+[tool.ruff]
+line-length = 88
+exclude = [".venv", "venv", "build", "dist", "__pycache__", "docs/_build"]
+select = ["E", "F", "W", "I", "N"]
+ignore = ["E501", "E203"] 
