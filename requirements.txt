@@ -21,3 +21,6 @@ pytesseract
 openpyxl>=3.1.5
 requests
 pydantic-settings>=2.0
+
+# DB Drivers
+neo4j>=5.18.0

@@ -13,6 +13,8 @@ import subprocess
 from palantir.api.metrics import router as metrics_router
 from palantir.api.upload import router as upload_router
 from palantir.api.report import router as report_router
+import httpx
+from neo4j import GraphDatabase
 
 app = FastAPI()
 app.state.limiter = limiter
@@ -39,10 +41,31 @@ register_backup_jobs(scheduler)
 def get_status():
     today = datetime.now().strftime("%Y%m%d")
     self_improve_log = os.path.exists(f"logs/self_improve_{today}.md")
+
+    # Weaviate 헬스 체크
+    weaviate_ok = False
+    try:
+        r = httpx.get(f"{os.getenv('WEAVIATE_URL', 'http://localhost:8080')}/v1/.well-known/ready", timeout=1)
+        weaviate_ok = r.status_code == 200
+    except Exception:
+        weaviate_ok = False
+
+    # Neo4j 헬스 체크 (선택적)
+    neo4j_ok = False
+    neo4j_url = os.getenv("NEO4J_URL", "bolt://localhost:7687")
+    try:
+        driver = GraphDatabase.driver(neo4j_url, auth=(os.getenv("NEO4J_USER", "neo4j"), os.getenv("NEO4J_PASS", "test")))
+        with driver.session() as session:
+            session.run("RETURN 1")
+            neo4j_ok = True
+        driver.close()
+    except Exception:
+        neo4j_ok = False
+
     return {
         "app": "ok",
-        "weaviate": "ok",  # 실제 부트 시 헬스체크로 대체
-        "neo4j": "ok",  # 실제 부트 시 헬스체크로 대체
+        "weaviate": "ok" if weaviate_ok else "error",
+        "neo4j": "ok" if neo4j_ok else "error",
         "self_improve": "ok" if self_improve_log else "pending",
     }
 
