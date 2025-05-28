@@ -5,7 +5,7 @@ $ErrorActionPreference = 'Stop'
 $LogFile = "build_offline_env.log"
 $ProjectRoot = (Get-Location).Path
 $VenvPath = "$ProjectRoot\.venv"
-$PyExe = "C:\Python313\python.exe"
+$PyExe = if (Test-Path "C:\Python313\python.exe") { "C:\Python313\python.exe" } else { (Get-Command python | Select-Object -First 1).Source }
 $MainReq = "$ProjectRoot\requirements.txt"
 $UiReq = "$ProjectRoot\pipeline_ui\requirements.txt"
 $PkgRoot = "$ProjectRoot\offline_preparation\python_packages"
@@ -21,18 +21,18 @@ function Log($msg) {
 try {
     Log "[1] 가상환경 생성 중..."
     if (-Not (Test-Path $VENV)) {
-        python -m venv $VENV
+        & $PyExe -m venv $VENV
     }
     & "$VENV\Scripts\activate"
     Log "[2] pip 오프라인 설치 (메인) ..."
     if ((Test-Path $PKG_DIR) -and ((Get-ChildItem $PKG_DIR).Count -gt 0)) {
         Write-Host "▶ 오프라인 패키지 설치"
-        pip install --no-index --find-links="$PKG_DIR" `
+        & "$VENV\Scripts\pip.exe" install --no-index --find-links="$PKG_DIR" `
             -r requirements.txt `
             -r pipeline_ui\requirements.txt
     } else {
         Write-Host "⚠  오프라인 저장소 비어 있음 → PyPI fallback"
-        pip install -r requirements.txt `
+        & "$VENV\Scripts\pip.exe" install -r requirements.txt `
                     -r pipeline_ui\requirements.txt
     }
     Log "[3] Codex 설정 파일 생성..."

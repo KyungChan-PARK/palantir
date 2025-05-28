@@ -73,4 +73,22 @@ loki:
 - `.github/workflows/ci.yml` 자동화
 
 ## 버전
-- v5.0 (2025) 
+- v5.0 (2025)
+
+## 📑 Table of Contents
+1. [Project Overview](#project-overview)
+2. [Architecture](#architecture)
+3. [Quick Start](#quick-start)
+   1. [Online Mode](#online-mode)
+   2. [Offline Mode (Air-gapped)](#offline-mode-air%E2%80%91gapped)
+   3. [Windows 11 Setup Notes](#windows11-setup-notes)
+4. [Usage Examples](#usage-examples)
+5. [API Reference](docs/API_REFERENCE.md)
+6. [Product Requirements](docs/FEATURE_PRD.md)
+7. [AI Agent Rules](AI_AGENT_RULES.md)
+8. [Contributing](CONTRIBUTING.md)
+
+## Project Overview
+본 프로젝트는 FastAPI 백엔드, Reflex 기반 UI, Weaviate 벡터 DB, Neo4j 그래프 DB를 통합하여 저코드 파이프라인 빌더와 자연어 질의 생성을 지원하는 **로컬 AI Ops 플랫폼**입니다. 오프라인(네트워크 차단) 환경 또는 일반 온라인 환경에서 동일한 코드를 실행할 수 있도록 설계되었습니다.
+
+> **Why?** 팔란티어 AIP에서 영감을 받아, 온프레미스 환경에서도 데이터 파이프라인·LLM 서비스를 안전하게 운영할 수 있는 레퍼런스를 제공합니다. 
