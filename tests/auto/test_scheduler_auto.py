@@ -1,11 +1,9 @@
 """AUTO-GEN TEST: line-cover stubs"""
 
-import pytest, importlib, inspect
-
-mod = importlib.import_module("palantir.core.scheduler")
-
+import importlib
 import palantir.core.scheduler as sch
 
+mod = importlib.import_module("palantir.core.scheduler")
 
 
 def test_line_8():

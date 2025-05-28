@@ -1,8 +1,8 @@
 """Sidebar component for the app."""
 
-from pipeline_ui import styles
-
 import reflex as rx
+
+from pipeline_ui import styles
 
 
 def sidebar_header() -> rx.Component:

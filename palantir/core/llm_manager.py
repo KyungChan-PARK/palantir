@@ -1,7 +1,9 @@
-from openai import OpenAI
-from .config import settings
 import logging
 from typing import Optional
+
+from openai import OpenAI
+
+from .config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +59,7 @@ class LLMManager:
                 logger.warning("OpenAI 호출 실패 — mock 사용: %s", e)
                 return self._mock_generate(query, mode)
         elif self.provider == "azure":
-            # Azure OpenAI endpoint 호출 예시 — 실제 deployment
-ame 필요
+            # Azure OpenAI endpoint 호출 예시 — 실제 deployment_name 필요
             try:
                 response = self.client.chat.completions.create(
                     deployment_name="gpt-35-turbo",  # 예시 이름
@@ -70,4 +71,4 @@ ame 필요
                 return self._mock_generate(query, mode)
         else:
             # 그외 provider는 아직 미구현 — mock
-            return self._mock_generate(query, mode) 
+            return self._mock_generate(query, mode)

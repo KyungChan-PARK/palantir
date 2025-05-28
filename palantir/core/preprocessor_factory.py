@@ -2,10 +2,11 @@ import io
 import json
 import tempfile
 
-import pandas as pd
-from PIL import Image
-import pytesseract
 import fitz  # PyMuPDF
+import pandas as pd
+import pytesseract
+from PIL import Image
+
 from palantir.core.clip_embed import embed_image_clip
 
 # ---------- Added by auto-patch ----------

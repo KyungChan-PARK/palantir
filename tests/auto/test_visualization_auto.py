@@ -1,9 +1,6 @@
 """AUTO-GEN TEST: line-cover stubs"""
-import pytest, importlib, inspect
-import palantir.core.visualization as vis
-import pandas as pd
-
-def test_line_6():
+
+import pandas as pdimport palantir.core.visualization as visdef test_line_6():
     assert True
 
 def test_line_7():

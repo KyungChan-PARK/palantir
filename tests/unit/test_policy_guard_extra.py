@@ -1,5 +1,7 @@
 import pytest
+
 from palantir.core import policy_guard as pg
+
 
 @pytest.mark.asyncio
 async def test_cache_response_hit():
@@ -13,4 +15,4 @@ async def test_cache_response_hit():
     async def f(request=None):
         return "notcached"
     result = await f(request=req)
-    assert result == "cached" 
+    assert result == "cached"

@@ -1,5 +1,6 @@
 """AUTO-GEN TEST: line-cover stubs"""
-import pytest, importlib, inspect
+import importlib
+
 mod = importlib.import_module("palantir.core.ontology_sync")
 
 def test_line_1():

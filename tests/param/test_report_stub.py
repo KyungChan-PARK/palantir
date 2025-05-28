@@ -1,6 +1,5 @@
 # AUTO-STUB: palantir.api.report import 실패
 
-import pytest
 
 def test_import_app_api_report():
 

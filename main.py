@@ -1,20 +1,22 @@
-from fastapi import FastAPI
-from datetime import datetime
 import os
-from palantir.api.pipeline import router as pipeline_router
-from palantir.api.ontology import router as ontology_router
-from palantir.api.ask import router as ask_router
-from palantir.core.policy_guard import limiter
-from prometheus_fastapi_instrumentator import Instrumentator
-from palantir.core.scheduler import scheduler
-from palantir.core.backup import register_backup_jobs
-from palantir.core.auth import router as auth_router
 import subprocess
-from palantir.api.metrics import router as metrics_router
-from palantir.api.upload import router as upload_router
-from palantir.api.report import router as report_router
+from datetime import datetime
+
 import httpx
+from fastapi import FastAPI
 from neo4j import GraphDatabase
+from prometheus_fastapi_instrumentator import Instrumentator
+
+from palantir.api.ask import router as ask_router
+from palantir.api.metrics import router as metrics_router
+from palantir.api.ontology import router as ontology_router
+from palantir.api.pipeline import router as pipeline_router
+from palantir.api.report import router as report_router
+from palantir.api.upload import router as upload_router
+from palantir.core.auth import router as auth_router
+from palantir.core.backup import register_backup_jobs
+from palantir.core.policy_guard import limiter
+from palantir.core.scheduler import scheduler
 
 app = FastAPI()
 app.state.limiter = limiter

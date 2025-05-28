@@ -1,5 +1,4 @@
 import argparse
-import os
 import re
 from pathlib import Path
 
@@ -27,7 +26,11 @@ def migrate_file(path: Path):
     # import 구문 통합
     text = PYDANTIC_V1_IMPORT.sub(PYDANTIC_V2_IMPORT, text)
     # 데코레이터 및 함수명 치환
-    for k, v in REPLACE_MAP.items():
+    replacements = {
+        r"@root_validator\(": "@model_validator(",
+        r"from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict": "from pydantic import model_validator, ValidationError",
+    }
+    for k, v in replacements.items():
         text = re.sub(k, v, text)
     if text != orig:
         path.write_text(text, encoding="utf-8")
@@ -50,4 +53,4 @@ def main():
             print(f" - {f}")
 
 if __name__ == "__main__":
-    main() 
+    main()

@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from palantir.core.ontology_sync import sync_ontology_to_neo4j
 
 router = APIRouter()
@@ -12,4 +13,4 @@ def ontology_sync():
         password="test",
         ontology_dir="ontology/",
     )
-    return {"synced": True} 
+    return {"synced": True}

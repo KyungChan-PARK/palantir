@@ -1,12 +1,10 @@
 """AUTO-GEN TEST: line-cover stubs"""
 
-import pytest, importlib, inspect, os
+import importlib
 
-from unittest import mock
+import pytest
 
 import palantir.core.backup as backup
-
-
 
 mod = importlib.import_module("palantir.core.backup")
 
@@ -48,7 +46,7 @@ def test_backup_weaviate_exception(monkeypatch):
 
     class DummyClient:
 
-        class backup:
+        class Backup:
 
             @staticmethod
 
@@ -82,7 +80,8 @@ def test_rolling_delete(tmp_path, monkeypatch):
 
     new = tmp_path / "29990101"
 
-    old.mkdir(); new.mkdir()
+    old.mkdir()
+    new.mkdir()
 
     monkeypatch.setattr(backup, "BACKUP_ROOT", str(tmp_path))
 

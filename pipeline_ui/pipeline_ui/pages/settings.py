@@ -1,8 +1,8 @@
 """The settings page."""
 
-from pipeline_ui.templates import ThemeState, template
-
 import reflex as rx
+
+from pipeline_ui.templates import ThemeState, template
 
 
 @template(route="/settings", title="Settings")

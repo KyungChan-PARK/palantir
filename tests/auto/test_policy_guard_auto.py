@@ -1,12 +1,11 @@
 """AUTO-GEN TEST: line-cover stubs"""
 
-import pytest, importlib, inspect, types
+import importlib
 
-import palantir.core.policy_guard as pg
-
+import pytest
 from fastapi import HTTPException
 
-
+import palantir.core.policy_guard as pg
 
 mod = importlib.import_module("palantir.core.policy_guard")
 

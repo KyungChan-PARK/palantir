@@ -1,19 +1,14 @@
-import pytest, io, json, types, asyncio
-
-from fastapi import UploadFile
-
-import importlib, builtins
-
-import pandas, sys
-
+import io as _io
+import json
+import sys
 import tempfile
+import types
 
-import pandas as _pd, io as _io
-
-
+import pandas as _pd
+import pytest
+from pytest import MonkeyPatch
 
 # 스텁: embed_image_clip → 고정 벡터
-
 import palantir.core.preprocessor_factory as pf
 
 pf.embed_image_clip = lambda img: [0.1]*512
@@ -22,11 +17,10 @@ pf.embed_image_clip = lambda img: [0.1]*512
 
 # 스텁: Pillow.Image.open
 
-class DummyImg: pass
+class DummyImg:
+    pass
 
-import builtins
 
-import types
 
 pf.Image = types.SimpleNamespace(open=lambda *a, **k: DummyImg())
 
@@ -122,8 +116,6 @@ async def test_preprocess_file_branches(filename, mime, content, expect, tmp_pat
 
 
 
-from pytest import MonkeyPatch
-
 @pytest.mark.asyncio
 async def test_preprocess_excel_local_mock(monkeypatch: MonkeyPatch):
 
@@ -133,10 +125,10 @@ async def test_preprocess_excel_local_mock(monkeypatch: MonkeyPatch):
 
     from palantir.core.preprocessor_factory import preprocess_file
 
-    XLSX = b'PK\x03\x04'  # minimal fake zip header
+    xlsx = b'PK\x03\x04'  # minimal fake zip header
 
-    res = await preprocess_file("test.xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",XLSX,job_id=1)
+    res = await preprocess_file("test.xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",xlsx,job_id=1)
 
     assert res["type"]=="table"
 
-    assert "a" in res["data"] 
+    assert "a" in res["data"]

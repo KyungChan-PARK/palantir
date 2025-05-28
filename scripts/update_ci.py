@@ -1,4 +1,5 @@
-import pathlib, re
+import pathlib
+
 ci = pathlib.Path('.github/workflows/ci.yml')
 txt = ci.read_text()
 block = '''
@@ -10,4 +11,4 @@ block = '''
 '''
 if 'Quality Gates' not in txt:
     txt += block
-    ci.write_text(txt) 
+    ci.write_text(txt)

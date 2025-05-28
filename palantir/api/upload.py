@@ -1,8 +1,10 @@
-from fastapi import APIRouter, UploadFile, File
+import uuid
+
+from fastapi import APIRouter, File, UploadFile
+from fastapi.responses import JSONResponse
+
 from palantir.core.preprocessor_factory import preprocess_file
 from palantir.core.weaviate_store import store_to_weaviate
-import uuid
-from fastapi.responses import JSONResponse
 
 router = APIRouter()
 

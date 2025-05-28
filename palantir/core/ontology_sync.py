@@ -1,6 +1,7 @@
-from neo4j import GraphDatabase
-import yaml
 import glob
+
+import yaml
+from neo4j import GraphDatabase
 
 
 def sync_ontology_to_neo4j(neo4j_url, user, password, ontology_dir="ontology/"):

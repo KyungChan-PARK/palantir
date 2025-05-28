@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException
 from typing import Set
+
+from fastapi import APIRouter, HTTPException
 from jose import jwt
 
 SECRET_KEY = "palantir-secret"

@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from palantir.core.weaviate_store import get_data_by_job_id
-from palantir.core.visualization import generate_plotly_html
-from palantir.core.scheduler import add_pipeline_job
 import os
+
+from fastapi import APIRouter, Form, Request
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+
+from palantir.core.scheduler import add_pipeline_job
+from palantir.core.visualization import generate_plotly_html
+from palantir.core.weaviate_store import get_data_by_job_id
 
 router = APIRouter()
 

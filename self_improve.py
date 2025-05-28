@@ -1,10 +1,9 @@
+import os
+import re
 import subprocess
 import sys
-from datetime import datetime
-import os
 import traceback
-import json
-import re
+from datetime import datetime
 
 PHASES = [
     ("ruff", "ruff --fix ."),
@@ -87,7 +86,7 @@ def main():
                     write_error_report(phase, err)
                     failed = True
                     break
-            except Exception as e:
+            except Exception:
                 trace = traceback.format_exc()
                 log.write(f"❌ {phase} EXCEPTION: {trace}\n")
                 write_error_report(phase, trace)
@@ -109,4 +108,4 @@ def main():
         print("[SELF-IMPROVE] ALL PASS")
 
 if __name__ == "__main__":
-    main() 
+    main()

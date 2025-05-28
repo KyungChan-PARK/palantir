@@ -1,10 +1,7 @@
-import pytest
 
 from fastapi.testclient import TestClient
 
 from palantir import app
-
-
 
 client = TestClient(app)
 
@@ -20,4 +17,4 @@ def test_status_keys():
 
     for key in ["app", "weaviate", "neo4j", "self_improve"]:
 
-        assert key in data 
+        assert key in data

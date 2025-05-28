@@ -1,6 +1,8 @@
-import plotly.graph_objs as go
-import pandas as pd
 import json
+
+import pandas as pd
+import plotly.graph_objs as go
+
 
 def generate_plotly_html(data):
     if data.get("type") == "table":
@@ -14,4 +16,4 @@ def generate_plotly_html(data):
     elif data.get("type") == "image":
         return f"<pre>CLIP 벡터(512차원): {str(data['vector'][:8])} ...</pre>"
     else:
-        return f"<pre>{str(data)[:1000]}</pre>" 
+        return f"<pre>{str(data)[:1000]}</pre>"

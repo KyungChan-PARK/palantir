@@ -1,10 +1,7 @@
-import pytest
 
 from fastapi.testclient import TestClient
 
 from palantir import app
-
-
 
 client = TestClient(app)
 
@@ -64,4 +61,4 @@ def test_pipeline_validate_fail():
 
     assert res.status_code == 200
 
-    assert res.json()["valid"] is False 
+    assert res.json()["valid"] is False

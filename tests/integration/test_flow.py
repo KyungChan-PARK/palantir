@@ -1,4 +1,3 @@
-import pytest, json, io
 
 from fastapi.testclient import TestClient
 

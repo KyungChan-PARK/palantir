@@ -1,8 +1,9 @@
-from fastapi import APIRouter, UploadFile, File
+import yaml
+from fastapi import APIRouter, File, UploadFile
+
 from palantir.core.pipeline_schema import PipelineSchema
 from palantir.core.pipeline_transpiler import transpile_yaml_to_dag
 from palantir.core.scheduler import add_pipeline_job
-import yaml
 
 router = APIRouter()
 

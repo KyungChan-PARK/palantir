@@ -1,7 +1,4 @@
-import pytest, io, json
-from palantir.core.preprocessor_factory import detect_mime, handle_csv, handle_json
-
-def test_detect_mime_success():
+import ioimport jsonfrom palantir.core.preprocessor_factory import detect_mime, handle_csv, handle_jsondef test_detect_mime_success():
     assert detect_mime('text/csv') == 'csv'
     assert detect_mime('application/json') == 'json'
 
@@ -16,4 +13,4 @@ def test_handle_csv_roundtrip():
 def test_handle_json_dict():
     data = json.dumps({"x":1})
     df = handle_json(io.BytesIO(data.encode()))
-    assert df.iloc[0]['x'] == 1 
+    assert df.iloc[0]['x'] == 1
