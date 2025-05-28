@@ -20,11 +20,12 @@ pytest-cov
 pytest-asyncio
 black
 openai>=1.25.0
-apscheduler
+apscheduler==3.10.4
 python-jose
 cachetools
 pillow
 pymupdf
 pytesseract
 openpyxl>=3.1.5
-requests 
+requests
+pydantic_settings>=2.0 
