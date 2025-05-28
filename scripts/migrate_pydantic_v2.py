@@ -8,8 +8,7 @@ PYDANTIC_V2_IMPORT = "from pydantic import BaseModel, Field, field_validator, mo
 REPLACE_MAP = {
     r"@validator\(": "@field_validator(",
     r"@root_validator\(": "@model_validator(",
-    r"from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict": "from pydantic import field_validator",
-    r"from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict": "from pydantic import model_validator",
+    r"from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict": "from pydantic import model_validator, ValidationError",
 }
 
 SKIP_EXT = {".json", ".md", ".yml", ".yaml", ".toml", ".lock", ".whl", ".tar", ".gz", ".zip"}
