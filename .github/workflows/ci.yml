@@ -18,7 +18,7 @@ jobs:
       - name: Install ruff
         run: pip install --upgrade ruff
       - name: Lint (ruff)
-        run: ruff .
+        run: ruff check .
       - name: Format (black)
         run: black --check --line-length 88 .
       - name: Pre-boot port check
