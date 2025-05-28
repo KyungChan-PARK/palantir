@@ -1,19 +1,33 @@
 import argparse
-import os
 import re
 from pathlib import Path
 
-PYDANTIC_V1_IMPORT = re.compile(r"from pydantic import (BaseModel|Field|validator|root_validator|ValidationError|ConfigDict)")
-PYDANTIC_V2_IMPORT = "from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict, Field, field_validator, model_validator, ValidationError, ConfigDict"
+PYDANTIC_V1_IMPORT = re.compile(
+    r"from pydantic import (BaseModel|Field|validator|root_validator|ValidationError|ConfigDict)"
+)
+# v1 import 구문을 v2 형태로 치환한다.
+PYDANTIC_V2_IMPORT = (
+    "from pydantic import BaseModel, Field, field_validator, "
+    "model_validator, ValidationError, ConfigDict"
+)
 
 REPLACE_MAP = {
     r"@validator\(": "@field_validator(",
     r"@root_validator\(": "@model_validator(",
-    r"from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict": "from pydantic import field_validator",
-    r"from pydantic import BaseModel, Field, field_validator, model_validator, ValidationError, ConfigDict": "from pydantic import model_validator",
 }
 
-SKIP_EXT = {".json", ".md", ".yml", ".yaml", ".toml", ".lock", ".whl", ".tar", ".gz", ".zip"}
+SKIP_EXT = {
+    ".json",
+    ".md",
+    ".yml",
+    ".yaml",
+    ".toml",
+    ".lock",
+    ".whl",
+    ".tar",
+    ".gz",
+    ".zip",
+}
 
 
 def migrate_file(path: Path):
@@ -34,6 +48,7 @@ def migrate_file(path: Path):
         return True
     return False
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--in-place", action="store_true")
@@ -49,5 +64,6 @@ def main():
         for f in changed:
             print(f" - {f}")
 
+
 if __name__ == "__main__":
-    main() 
+    main()

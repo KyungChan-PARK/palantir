@@ -1,15 +1,8 @@
 """AUTO-GEN TEST: line-cover stubs"""
 
-import pytest, importlib, inspect, os
-
-from unittest import mock
+import pytest
 
 import palantir.core.backup as backup
-
-
-
-mod = importlib.import_module("palantir.core.backup")
-
 
 
 def test_line_18():
@@ -17,11 +10,9 @@ def test_line_18():
     assert True
 
 
-
 def test_line_19():
 
     assert True
-
 
 
 def test_line_20():
@@ -29,17 +20,14 @@ def test_line_20():
     assert True
 
 
-
 def test_line_21():
 
     assert True
 
 
-
 def test_line_22():
 
     assert True
-
 
 
 def test_backup_weaviate_exception(monkeypatch):
@@ -51,8 +39,8 @@ def test_backup_weaviate_exception(monkeypatch):
         class backup:
 
             @staticmethod
-
-            def create(*a, **k): raise Exception("fail")
+            def create(*a, **k):
+                raise Exception("fail")
 
     monkeypatch.setattr(backup.weaviate, "Client", lambda *a, **k: DummyClient)
 
@@ -61,17 +49,19 @@ def test_backup_weaviate_exception(monkeypatch):
         backup.backup_weaviate()
 
 
-
 def test_backup_neo4j_exception(monkeypatch):
 
     monkeypatch.setattr(backup, "notify_slack", lambda msg: None)
 
-    monkeypatch.setattr(backup.subprocess, "check_call", lambda *a, **k: (_ for _ in ()).throw(Exception("fail")))
+    monkeypatch.setattr(
+        backup.subprocess,
+        "check_call",
+        lambda *a, **k: (_ for _ in ()).throw(Exception("fail")),
+    )
 
     with pytest.raises(Exception):
 
         backup.backup_neo4j()
-
 
 
 def test_rolling_delete(tmp_path, monkeypatch):
@@ -82,13 +72,11 @@ def test_rolling_delete(tmp_path, monkeypatch):
 
     new = tmp_path / "29990101"
 
-    old.mkdir(); new.mkdir()
+    old.mkdir()
+    new.mkdir()
 
     monkeypatch.setattr(backup, "BACKUP_ROOT", str(tmp_path))
 
     backup.rolling_delete(days=1)
 
     assert not old.exists() and new.exists()
-
-
-
