@@ -132,3 +132,59 @@ async def test_preprocess_excel_local_mock(monkeypatch: MonkeyPatch):
     assert res["type"]=="table"
 
     assert "a" in res["data"]
+
+
+
+@pytest.mark.asyncio
+async def test_preprocess_file_csv():
+    df = _pd.DataFrame({"a": [1,2]})
+    buf = df.to_csv(index=False).encode()
+    out = await pf.preprocess_file("test.csv", "text/csv", buf, "job1")
+    assert out["type"] == "table" and out["job_id"] == "job1"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_json():
+    import json
+    data = [{"a": 1}, {"a": 2}]
+    buf = json.dumps(data).encode()
+    out = await pf.preprocess_file("test.json", "application/json", buf, "job2")
+    assert out["type"] == "json"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_pdf(monkeypatch):
+    # fitz.open, pytesseract.image_to_string 모킹
+    class DummyPage:
+        def get_text(self): return "page text"
+        def get_pixmap(self):
+            class Pix: width=1; height=1; samples=b"a"*3
+            return Pix()
+    class DummyDoc:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def __iter__(self): return iter([DummyPage()])
+        def __getitem__(self, idx): return DummyPage()
+    monkeypatch.setattr("fitz.open", lambda *a, **k: DummyDoc())
+    monkeypatch.setattr("pytesseract.image_to_string", lambda img: "ocr text")
+    import io
+    out = await pf.preprocess_file("test.pdf", "application/pdf", b"%PDF", "job3")
+    assert out["type"] == "pdf"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_image(monkeypatch):
+    class DummyImg:
+        pass
+    monkeypatch.setattr("PIL.Image.open", lambda buf: DummyImg())
+    monkeypatch.setattr("palantir.core.clip_embed.embed_image_clip", lambda img: [0]*512)
+    out = await pf.preprocess_file("test.png", "image/png", b"img", "job4")
+    assert out["type"] == "image"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_excel(monkeypatch):
+    monkeypatch.setattr("pandas.read_excel", lambda buf, engine=None: _pd.DataFrame({"a": [1]}))
+    out = await pf.preprocess_file("test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", b"excel", "job5")
+    assert out["type"] == "table"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_raw():
+    out = await pf.preprocess_file("test.bin", "application/octet-stream", b"rawdata", "job6")
+    assert out["type"] == "raw"
