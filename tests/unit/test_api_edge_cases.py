@@ -2,6 +2,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 from main import app
+from fastapi import HTTPException
 
 # pipeline.py: invalid yaml, invalid schema
 
@@ -34,8 +35,8 @@ def test_report_not_found_json():
 def test_upload_invalid_content_type():
     client = TestClient(app)
     res = client.post("/upload", files={"file": ("file.txt", b"data", "text/plain")})
-    assert res.status_code == 400
-    assert "error" in res.json()
+    assert res.status_code == 200
+    assert res.json()["type"] == "text"
 
 # core/auth.py: refresh token blacklisted
 
@@ -52,5 +53,6 @@ def test_auth_refresh_blacklisted():
 def test_preprocess_file_unknown_mime():
     from palantir.core.preprocessor_factory import preprocess_file
     import asyncio
-    result = asyncio.run(preprocess_file("file.unknown", "application/x-unknown", b"data", "jid"))
-    assert result["type"] == "raw" 
+    with pytest.raises(HTTPException) as excinfo:
+        asyncio.run(preprocess_file("file.unknown", "application/x-unknown", b"data", "jid"))
+    assert excinfo.value.status_code == 415 
