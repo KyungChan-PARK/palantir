@@ -1,12 +1,12 @@
 import pytest
+import os
 
 from palantir.core.llm_manager import LLMManager
 from palantir.core.policy_guard import rate_limit_for_tier
 from palantir.core.visualization import generate_plotly_html
 
-
 def test_llmmanager_invalid_mode():
-    llm = LLMManager()
+    llm = LLMManager(offline=True)
     with pytest.raises(ValueError):
         llm.generate_code("test", mode="invalid")
 

@@ -8,9 +8,12 @@ from .config import settings
 logger = logging.getLogger(__name__)
 
 class LLMManager:
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, offline: Optional[bool] = None):
+        if offline is not None:
+            self.offline = offline
+        else:
+            self.offline = getattr(settings, "OFFLINE_MODE", False)
         self.provider = getattr(settings, "LLM_PROVIDER", "openai").lower()
-        self.offline = getattr(settings, "OFFLINE_MODE", False)
 
         if self.provider == "openai":
             # OpenAI 공식 SDK 사용

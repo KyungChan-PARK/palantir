@@ -1,6 +1,6 @@
 from typing import Set
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Form
 from jose import jwt
 
 SECRET_KEY = "palantir-secret"
@@ -27,7 +27,7 @@ def logout(refresh_token: str):
 
 
 @router.post("/auth/refresh")
-def refresh(refresh_token: str):
+def refresh(refresh_token: str = Form(...)):
     if is_refresh_token_blacklisted(refresh_token):
         raise HTTPException(status_code=401, detail="Token revoked")
     # 실제 토큰 검증 및 재발급 로직 필요

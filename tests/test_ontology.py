@@ -1,7 +1,6 @@
-
 from fastapi.testclient import TestClient
 
-from palantir import app
+from main import app
 
 client = TestClient(app)
 

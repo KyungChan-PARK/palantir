@@ -1,18 +1,19 @@
 name: CI
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+
+on: [push, pull_request]
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.13"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: ${{ matrix.python }}
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Install ruff
@@ -62,4 +63,8 @@ jobs:
           cd pipeline_ui
           Start-Process -FilePath python -ArgumentList '-m','reflex','run'
           Start-Sleep 30
-          python ../tests/e2e_upload_report.py 
+          python ../tests/e2e_upload_report.py
+      - name: Run tests with coverage
+        run: |
+          export PYTHONPATH=$(pwd)
+          pytest --cov=palantir --cov-fail-under=92 
