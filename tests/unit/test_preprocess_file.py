@@ -7,6 +7,7 @@ import types
 import pandas as _pd
 import pytest
 from pytest import MonkeyPatch
+from fastapi import HTTPException
 
 # 스텁: embed_image_clip → 고정 벡터
 import palantir.core.preprocessor_factory as pf
@@ -100,7 +101,7 @@ IMG_BYTES = __import__('base64').b64decode("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIA
 @pytest.mark.parametrize("filename,mime,content,expect",[
     ("test.csv", "text/csv",    CSV_BYTES,  "table"),
     ("test.json", "application/json", JSON_BYTES,"json"),
-    ("test.pdf", "application/pdf",  PDF_BYTES,"pdf"),
+    ("test.pdf", "application/pdf",  PDF_BYTES, "pdf"),
     ("test.png", "image/png",    IMG_BYTES,  "image"),
     ("test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", XLSX_BYTES,"table"),
     ("test.bin", "application/octet-stream", b"rawdata", "raw"),
@@ -110,9 +111,18 @@ async def test_preprocess_file_branches(filename, mime, content, expect, tmp_pat
     file_path = tmp_path / filename
     with open(file_path, "wb") as f:
         f.write(content)
-    res = await pf.preprocess_file(str(file_path), mime, content, job_id=123)
-    assert res["type"] == expect
-    assert res["job_id"] == 123
+    if expect == "raw":
+        with pytest.raises(HTTPException) as excinfo:
+            await pf.preprocess_file(str(file_path), mime, content, job_id=123)
+        assert excinfo.value.status_code == 415
+    else:
+        res = await pf.preprocess_file(str(file_path), mime, content, job_id=123)
+        if expect == "pdf" and "error" in res:
+            assert res["type"] == "pdf"
+            assert "error" in res
+        else:
+            assert res["type"] == expect
+        assert res["job_id"] == 123
 
 
 
@@ -168,6 +178,7 @@ async def test_preprocess_file_pdf(monkeypatch):
     import io
     out = await pf.preprocess_file("test.pdf", "application/pdf", b"%PDF", "job3")
     assert out["type"] == "pdf"
+    assert "error" in out
 
 @pytest.mark.asyncio
 async def test_preprocess_file_image(monkeypatch):
@@ -186,5 +197,6 @@ async def test_preprocess_file_excel(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_preprocess_file_raw():
-    out = await pf.preprocess_file("test.bin", "application/octet-stream", b"rawdata", "job6")
-    assert out["type"] == "raw"
+    with pytest.raises(HTTPException) as excinfo:
+        await pf.preprocess_file("test.bin", "application/octet-stream", b"rawdata", "job6")
+    assert excinfo.value.status_code == 415
