@@ -7,6 +7,7 @@ import types
 import pandas as _pd
 import pytest
 from pytest import MonkeyPatch
+from fastapi import HTTPException
 
 # 스텁: embed_image_clip → 고정 벡터
 import palantir.core.preprocessor_factory as pf
@@ -100,7 +101,7 @@ IMG_BYTES = __import__('base64').b64decode("iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIA
 @pytest.mark.parametrize("filename,mime,content,expect",[
     ("test.csv", "text/csv",    CSV_BYTES,  "table"),
     ("test.json", "application/json", JSON_BYTES,"json"),
-    ("test.pdf", "application/pdf",  PDF_BYTES,"pdf"),
+    ("test.pdf", "application/pdf",  PDF_BYTES, "pdf"),
     ("test.png", "image/png",    IMG_BYTES,  "image"),
     ("test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", XLSX_BYTES,"table"),
     ("test.bin", "application/octet-stream", b"rawdata", "raw"),
@@ -110,9 +111,18 @@ async def test_preprocess_file_branches(filename, mime, content, expect, tmp_pat
     file_path = tmp_path / filename
     with open(file_path, "wb") as f:
         f.write(content)
-    res = await pf.preprocess_file(str(file_path), mime, content, job_id=123)
-    assert res["type"] == expect
-    assert res["job_id"] == 123
+    if expect == "raw":
+        with pytest.raises(HTTPException) as excinfo:
+            await pf.preprocess_file(str(file_path), mime, content, job_id=123)
+        assert excinfo.value.status_code == 415
+    else:
+        res = await pf.preprocess_file(str(file_path), mime, content, job_id=123)
+        if expect == "pdf" and "error" in res:
+            assert res["type"] == "pdf"
+            assert "error" in res
+        else:
+            assert res["type"] == expect
+        assert res["job_id"] == 123
 
 
 
@@ -132,3 +142,61 @@ async def test_preprocess_excel_local_mock(monkeypatch: MonkeyPatch):
     assert res["type"]=="table"
 
     assert "a" in res["data"]
+
+
+
+@pytest.mark.asyncio
+async def test_preprocess_file_csv():
+    df = _pd.DataFrame({"a": [1,2]})
+    buf = df.to_csv(index=False).encode()
+    out = await pf.preprocess_file("test.csv", "text/csv", buf, "job1")
+    assert out["type"] == "table" and out["job_id"] == "job1"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_json():
+    import json
+    data = [{"a": 1}, {"a": 2}]
+    buf = json.dumps(data).encode()
+    out = await pf.preprocess_file("test.json", "application/json", buf, "job2")
+    assert out["type"] == "json"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_pdf(monkeypatch):
+    # fitz.open, pytesseract.image_to_string 모킹
+    class DummyPage:
+        def get_text(self): return "page text"
+        def get_pixmap(self):
+            class Pix: width=1; height=1; samples=b"a"*3
+            return Pix()
+    class DummyDoc:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def __iter__(self): return iter([DummyPage()])
+        def __getitem__(self, idx): return DummyPage()
+    monkeypatch.setattr("fitz.open", lambda *a, **k: DummyDoc())
+    monkeypatch.setattr("pytesseract.image_to_string", lambda img: "ocr text")
+    import io
+    out = await pf.preprocess_file("test.pdf", "application/pdf", b"%PDF", "job3")
+    assert out["type"] == "pdf"
+    assert "error" in out
+
+@pytest.mark.asyncio
+async def test_preprocess_file_image(monkeypatch):
+    class DummyImg:
+        pass
+    monkeypatch.setattr("PIL.Image.open", lambda buf: DummyImg())
+    monkeypatch.setattr("palantir.core.clip_embed.embed_image_clip", lambda img: [0]*512)
+    out = await pf.preprocess_file("test.png", "image/png", b"img", "job4")
+    assert out["type"] == "image"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_excel(monkeypatch):
+    monkeypatch.setattr("pandas.read_excel", lambda buf, engine=None: _pd.DataFrame({"a": [1]}))
+    out = await pf.preprocess_file("test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", b"excel", "job5")
+    assert out["type"] == "table"
+
+@pytest.mark.asyncio
+async def test_preprocess_file_raw():
+    with pytest.raises(HTTPException) as excinfo:
+        await pf.preprocess_file("test.bin", "application/octet-stream", b"rawdata", "job6")
+    assert excinfo.value.status_code == 415
