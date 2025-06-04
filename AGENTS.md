@@ -1,62 +1,63 @@
-# Codex Agent 설정 가이드
+# Codex 에이전트 가이드
 
-## 소개
+## 개요
 
-이 가이드는 네트워크 차단 환경에서 Codex 에이전트를 실행하기 위한 설정을 제공합니다. Codex는 코드베이스를 탐색하고, 반복적인 작업을 자동화하며, 효과적인 솔루션을 생성하는 데 도움을 주는 AI 코딩 에이전트입니다.
+Codex 에이전트는 네트워크 차단 환경에서 동작하는 AI 기반 코드 분석 및 생성 도구입니다.
 
-## 에이전트 실행 환경
+## 설치 및 설정
 
-### 시스템 요구사항
-- Python 3.13.3 이상
-- Windows 또는 Linux(x86_64) 환경
-- 격리된 작업 공간 (보안 및 리소스 최적화)
+### 1. 시스템 요구사항
 
-### 주요 의존성
+- Python 3.13
+- 운영체제: Linux (x86_64) 또는 Windows
+- 최소 8GB RAM
+- 최소 20GB 저장공간
+
+### 2. 오프라인 설치 준비
+
+모든 필요한 패키지는 `offline_preparation/python_packages/unified` 디렉토리에 있습니다:
+
+```bash
+# Linux 환경
+numpy-2.2.6-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+
+# Windows 환경
+numpy-2.2.6-cp313-cp313-win_amd64.whl
 ```
-numpy==2.2.6
-fastapi==0.115.12
-pydantic==2.10.6
-reflex==0.7.12
-```
-전체 의존성 목록은 `requirements.txt` 참조
 
-## 오프라인 설치 구성
+### 3. 설치 과정
 
-### 패키지 저장소
-모든 필요한 패키지는 `offline_preparation/python_packages/unified` 디렉토리에 wheel 파일로 제공됩니다.
-
-### 플랫폼별 NumPy Wheels
-- Windows: `numpy-2.2.6-cp313-cp313-win_amd64.whl`
-- Linux: `numpy-2.2.6-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl`
-
-## 에이전트 설정 프로세스
-
-### 1. 환경 초기화
+1. 의존성 설치:
 ```bash
 python install_dependencies.py
 ```
-이 스크립트는:
-- pip를 최신 버전으로 업그레이드
-- 시스템에 맞는 NumPy wheel 설치
-- 필수 의존성 패키지 설치
-- 특정 버전의 패키지 설치
 
-### 2. 환경 변수 설정
-필수 환경 변수:
+이 스크립트는 다음 작업을 수행합니다:
+- pip 업그레이드
+- NumPy 설치 (시스템에 맞는 wheel 파일 사용)
+- 기타 의존성 설치
+
+2. 환경 변수 설정:
+```bash
+# Linux
+export PYTHONPATH=/path/to/workspace
+export OFFLINE_MODE=true
+
+# Windows
+set PYTHONPATH=C:\path\to\workspace
+set OFFLINE_MODE=true
 ```
-OPENAI_API_KEY=your_api_key
-MODEL_NAME=your_model_name
-ENVIRONMENT=production
+
+### 4. 설치 확인
+
+```bash
+pytest tests/ -v
 ```
 
-### 3. 작업 공간 구성
-- 프로젝트 루트 디렉토리 설정
-- 필요한 권한 및 접근 설정
-- 리소스 제한 설정
+## 기능
 
-## 에이전트 기능
-
-### 1. 코드베이스 탐색
+### 1. 코드 분석
+- 정적 코드 분석
 - 의미론적 코드 검색
 - 파일 및 디렉토리 탐색
 - 코드 문맥 이해
@@ -118,7 +119,7 @@ pytest --cov
 ### 2. 코드 품질 관리
 ```bash
 black .
-ruff .
+ruff check .
 mypy .
 ```
 
@@ -138,4 +139,48 @@ mypy .
 
 - 이 설정은 네트워크 차단 환경에 최적화되어 있습니다
 - 모든 의존성은 로컬에서 해결됩니다
-- 추가 도구나 패키지가 필요한 경우 wheel 파일을 미리 준비해야 합니다 
+- Linux 환경에서는 manylinux wheel을 사용합니다
+- Windows 환경에서는 win_amd64 wheel을 사용합니다
+
+## 오류 해결
+
+### 1. NumPy 설치 실패
+- wheel 파일이 시스템 아키텍처와 일치하는지 확인
+- pip 버전이 최신인지 확인
+- setuptools와 wheel이 설치되어 있는지 확인
+
+### 2. 의존성 충돌
+- requirements.txt의 버전 호환성 확인
+- 특정 패키지 버전 고정
+- 가상 환경 사용 권장
+
+### 3. 테스트 실패
+- pytest 로그 확인
+- 환경 변수 설정 검증
+- 테스트 데이터 가용성 확인
+
+## 개발 워크플로우
+
+1. 환경 설정
+```bash
+python install_dependencies.py
+```
+
+2. 코드 품질 검사
+```bash
+black .
+ruff check .
+mypy .
+```
+
+3. 테스트 실행
+```bash
+pytest -v
+```
+
+4. 변경사항 커밋
+```bash
+git add .
+git commit -m "feat: 기능 설명"
+git push origin main
+``` 
