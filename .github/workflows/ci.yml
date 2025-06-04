@@ -1,49 +1,122 @@
-name: CI
+name: CI/CD
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 0'  # 매주 일요일 자정에 실행
+
+env:
+  PYTHONPATH: ${{ github.workspace }}
+  REDIS_HOST: localhost
+  REDIS_PORT: 6379
+  WEAVIATE_URL: http://localhost:8080
+  NEO4J_URI: bolt://localhost:7687
 
 jobs:
-  build:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff black mypy
+      
+      - name: Run Ruff
+        run: ruff check .
+      
+      - name: Run Black
+        run: black --check --line-length 88 .
+      
+      - name: Run MyPy
+        run: mypy palantir
+
+  test:
+    name: Test & Coverage
+    needs: lint
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
         python: ["3.13"]
     runs-on: ${{ matrix.os }}
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      weaviate:
+        image: semitechnologies/weaviate:1.24.1
+        ports:
+          - 8080:8080
+        env:
+          QUERY_DEFAULTS_LIMIT: 25
+          AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+          PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+          DEFAULT_VECTORIZER_MODULE: 'none'
+          CLUSTER_HOSTNAME: 'node1'
+      
+      neo4j:
+        image: neo4j:5.15.0
+        ports:
+          - 7474:7474
+          - 7687:7687
+        env:
+          NEO4J_AUTH: neo4j/test
+          NEO4J_dbms_memory_pagecache_size: 1G
+          NEO4J_dbms_memory_heap_initial__size: 1G
+          NEO4J_dbms_memory_heap_max__size: 1G
+    
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+          cache: 'pip'
+      
       - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Install ruff
-        run: pip install --upgrade ruff
-      - name: Lint (ruff)
-        run: ruff check .
-      - name: Format (black)
-        run: black --check --line-length 88 .
-      - name: Pre-boot port check
         run: |
-          netstat -ano | findstr :8080 > port8080.txt || exit 0
-          for /f "tokens=5" %%a in (port8080.txt) do taskkill /PID %%a /F
-          netstat -ano | findstr :7687 > port7687.txt || exit 0
-          for /f "tokens=5" %%a in (port7687.txt) do taskkill /PID %%a /F
-      - name: Test & Coverage (parallel)
-        run: pytest -n auto --dist loadfile --cov=app --cov-fail-under=92
-      - name: Health check
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-xdist pytest-asyncio
+      
+      - name: Run tests with coverage
         run: |
-          uvicorn main:app --port 8000 &
-          sleep 5
-          curl -f http://localhost:8000/status
-          curl -f http://localhost:8000/metrics
-          python -c "import requests; r = requests.get('http://localhost:8000/status'); d = r.json(); assert all(d[k]=='ok' or k=='self_improve' for k in ['app','weaviate','neo4j','self_improve']), d"
-          curl -f http://localhost:3000/api/health
-      - name: Upload error reports
-        uses: actions/upload-artifact@v4
+          pytest -n auto --dist loadfile --cov=palantir --cov-report=xml --cov-report=term-missing --cov-fail-under=92
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         with:
-          name: error-reports
-          path: error_report_*.md
-      - name: Dependency Check
+          file: ./coverage.xml
+          fail_ci_if_error: true
+
+  security:
+    name: Security Scan
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'palantir'
@@ -52,19 +125,103 @@ jobs:
           out: 'dependency-check-report'
           failOnCVSS: '7'
           data: 'https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/odc-data-2025-05.tar.gz'
-      - name: Upload dependency-check report
+      
+      - name: Run Bandit
+        run: |
+          pip install bandit
+          bandit -r palantir/ -f json -o bandit-results.json
+      
+      - name: Upload security reports
         uses: actions/upload-artifact@v4
         with:
-          name: dependency-check-report
-          path: dependency-check-report
-      - name: Reflex SPA E2E
-        shell: pwsh
+          name: security-reports
+          path: |
+            dependency-check-report
+            bandit-results.json
+
+  e2e:
+    name: End-to-End Tests
+    needs: test
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      weaviate:
+        image: semitechnologies/weaviate:1.24.1
+        ports:
+          - 8080:8080
+      neo4j:
+        image: neo4j:5.15.0
+        ports:
+          - 7474:7474
+          - 7687:7687
+        env:
+          NEO4J_AUTH: neo4j/test
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest playwright
+          playwright install
+      
+      - name: Run E2E tests
         run: |
           cd pipeline_ui
-          Start-Process -FilePath python -ArgumentList '-m','reflex','run'
-          Start-Sleep 30
-          python ../tests/e2e_upload_report.py
-      - name: Run tests with coverage
+          python -m reflex run &
+          sleep 30
+          cd ..
+          pytest tests/e2e_upload_report.py -v
+      
+      - name: Upload E2E test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-reports
+          path: |
+            test-results
+            playwright-report
+
+  deploy:
+    name: Deploy
+    needs: [test, security, e2e]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: palantir
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          export PYTHONPATH=$(pwd)
-          pytest --cov=palantir --cov-fail-under=92 
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      
+      - name: Update ECS service
+        run: |
+          aws ecs update-service --cluster palantir-cluster --service palantir-service --force-new-deployment 
