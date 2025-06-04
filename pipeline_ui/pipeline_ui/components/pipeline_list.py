@@ -38,9 +38,9 @@ class PipelineList(rx.Component):
                         "error": "파이프라인 목록을 가져올 수 없습니다.",
                         "loading": False
                     })
-        except Exception as e:
+        except Exception:
             self.state.update({
-                "error": str(e),
+                "error": "파이프라인 목록을 가져올 수 없습니다.",
                 "loading": False
             })
 
@@ -59,7 +59,7 @@ class PipelineList(rx.Component):
         try:
             dt = datetime.fromisoformat(date_str)
             return dt.strftime("%Y-%m-%d %H:%M")
-        except:
+        except Exception:
             return date_str
 
     def render(self) -> rx.Component:

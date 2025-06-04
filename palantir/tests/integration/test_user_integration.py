@@ -5,6 +5,7 @@ import httpx
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import asyncio
 
 from palantir.core.auth import create_access_token, get_password_hash
 from palantir.core.user import Base, UserDB

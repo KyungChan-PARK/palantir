@@ -1,7 +1,5 @@
-import pytest
-import os
-import shutil
 from palantir.core import backup
+
 
 def test_rolling_delete_no_files(monkeypatch):
     from palantir.core import backup
@@ -34,11 +32,10 @@ def test_rolling_delete(tmp_path):
     backup.BACKUP_ROOT = orig_backup_root
 
 # backup_weaviate, backup_neo4j는 외부 의존성(weaviate, subprocess) 모킹 필요
-import types
 
 def test_backup_weaviate_mock(monkeypatch, tmp_path):
     class DummyClient:
-        class backup:
+        class Backup:
             @staticmethod
             def create(name, backend):
                 return None

@@ -89,10 +89,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Initialize Git Submodules
-        run: |
-          git submodule update --init --recursive
-      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -168,10 +164,6 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Initialize Git Submodules
-        run: |
-          git submodule update --init --recursive
       
       - name: Set up Python
         uses: actions/setup-python@v5

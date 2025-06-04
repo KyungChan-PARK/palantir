@@ -2,8 +2,8 @@
 
 테이블, JSON, PDF, 이미지 등 다양한 타입을 HTML로 변환한다.
 """
-import json
 import base64
+import json
 from io import BytesIO
 from typing import Any, Dict
 

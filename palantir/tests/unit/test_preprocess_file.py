@@ -166,7 +166,10 @@ async def test_preprocess_file_pdf(monkeypatch):
     class DummyPage:
         def get_text(self): return "page text"
         def get_pixmap(self):
-            class Pix: width=1; height=1; samples=b"a"*3
+            class Pix:
+                width = 1
+                height = 1
+                samples = b"a" * 3
             return Pix()
     class DummyDoc:
         def __enter__(self): return self

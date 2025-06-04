@@ -1,10 +1,10 @@
-import os
-import importlib
 from fastapi.testclient import TestClient
 from jose import jwt
+
 from main import app
 from palantir.api import ask
 from palantir.core.llm_manager import LLMManager
+
 
 def get_mock_llm_manager():
     return LLMManager(offline=True)

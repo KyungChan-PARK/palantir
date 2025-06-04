@@ -2,8 +2,9 @@
 
 리포트 승인 시 DAG 등록 및 로그 출력을 담당한다.
 """
+from typing import Any
+
 from apscheduler.schedulers.background import BackgroundScheduler
-from typing import Any, Dict
 
 scheduler = BackgroundScheduler()
 scheduler.start()
