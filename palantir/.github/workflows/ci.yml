@@ -1,0 +1,227 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 0 * * 0'  # 매주 일요일 자정에 실행
+
+env:
+  PYTHONPATH: ${{ github.workspace }}
+  REDIS_HOST: localhost
+  REDIS_PORT: 6379
+  WEAVIATE_URL: http://localhost:8080
+  NEO4J_URI: bolt://localhost:7687
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff black mypy
+      
+      - name: Run Ruff
+        run: ruff check .
+      
+      - name: Run Black
+        run: black --check --line-length 88 .
+      
+      - name: Run MyPy
+        run: mypy palantir
+
+  test:
+    name: Test & Coverage
+    needs: lint
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.13"]
+    runs-on: ${{ matrix.os }}
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      weaviate:
+        image: semitechnologies/weaviate:1.24.1
+        ports:
+          - 8080:8080
+        env:
+          QUERY_DEFAULTS_LIMIT: 25
+          AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+          PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+          DEFAULT_VECTORIZER_MODULE: 'none'
+          CLUSTER_HOSTNAME: 'node1'
+      
+      neo4j:
+        image: neo4j:5.15.0
+        ports:
+          - 7474:7474
+          - 7687:7687
+        env:
+          NEO4J_AUTH: neo4j/test
+          NEO4J_dbms_memory_pagecache_size: 1G
+          NEO4J_dbms_memory_heap_initial__size: 1G
+          NEO4J_dbms_memory_heap_max__size: 1G
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-xdist pytest-asyncio
+      
+      - name: Run tests with coverage
+        run: |
+          pytest -n auto --dist loadfile --cov=palantir --cov-report=xml --cov-report=term-missing --cov-fail-under=92
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
+
+  security:
+    name: Security Scan
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'palantir'
+          path: '.'
+          format: 'HTML'
+          out: 'dependency-check-report'
+          failOnCVSS: '7'
+          data: 'https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.0/odc-data-2025-05.tar.gz'
+      
+      - name: Run Bandit
+        run: |
+          pip install bandit
+          bandit -r palantir/ -f json -o bandit-results.json
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            dependency-check-report
+            bandit-results.json
+
+  e2e:
+    name: End-to-End Tests
+    needs: test
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+      weaviate:
+        image: semitechnologies/weaviate:1.24.1
+        ports:
+          - 8080:8080
+      neo4j:
+        image: neo4j:5.15.0
+        ports:
+          - 7474:7474
+          - 7687:7687
+        env:
+          NEO4J_AUTH: neo4j/test
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest playwright
+          playwright install
+      
+      - name: Run E2E tests
+        run: |
+          cd pipeline_ui
+          python -m reflex run &
+          sleep 30
+          cd ..
+          pytest tests/e2e_upload_report.py -v
+      
+      - name: Upload E2E test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-reports
+          path: |
+            test-results
+            playwright-report
+
+  deploy:
+    name: Deploy
+    needs: [test, security, e2e]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Build and push Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: palantir
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      
+      - name: Update ECS service
+        run: |
+          aws ecs update-service --cluster palantir-cluster --service palantir-service --force-new-deployment 
