@@ -39,6 +39,20 @@ python install_dependencies.py
 uvicorn main:app --reload
 ```
 
+## Python 3.13 + NumPy
+To ensure NumPy works with Python 3.13, install version 2.2.6:
+```bash
+PIP_NO_INDEX=0 pip install numpy==2.2.6 --extra-index-url https://pypi.org/simple
+```
+For offline environments:
+```bash
+pip install --no-index --find-links=./offline_preparation/python_packages/main_app_packages numpy==2.2.6
+```
+Check the version:
+```bash
+python -c "import numpy, sys; print(numpy.__version__, sys.version)"
+```
+
 ## 테스트
 ```bash
 python -m pytest --cov=app --cov-fail-under=90
