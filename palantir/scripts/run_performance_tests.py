@@ -5,8 +5,8 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Dict
 from pathlib import Path
+from typing import Dict
 
 import aiohttp
 from rich.console import Console
@@ -15,8 +15,6 @@ from rich.table import Table
 # 프로젝트 루트 디렉토리를 Python 경로에 추가
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
-
-from tests.performance.test_api_performance import test_memory_usage
 
 console = Console()
 
