@@ -17,6 +17,7 @@ ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRE_MINUTES", "30"))
 DEFAULT_RATE_LIMIT = os.getenv("DEFAULT_RATE_LIMIT", "5/minute")
 
+
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     if expires_delta:
@@ -25,6 +26,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + timedelta(minutes=TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def user_tier_func(request: Request) -> str:
     auth = request.headers.get("authorization")
@@ -38,27 +40,33 @@ def user_tier_func(request: Request) -> str:
             return DEFAULT_RATE_LIMIT
     return DEFAULT_RATE_LIMIT
 
+
 limiter = Limiter(key_func=get_remote_address, default_limits=[user_tier_func])
 cache = get_cache(128)
 auth_scheme = HTTPBearer()
 
+
 def verify_jwt(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
     try:
-        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM]
+        )
         if datetime.fromtimestamp(payload["exp"]) < datetime.utcnow():
             raise HTTPException(status_code=401, detail="Token has expired")
         return payload
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+
 def rate_limit_for_tier(tier: str) -> str:
     limits = {
         "admin": "100/minute",
         "pro": "30/minute",
         "gold": "10/minute",
-        "free": "5/minute"
+        "free": "5/minute",
     }
     return limits.get(tier.lower(), DEFAULT_RATE_LIMIT)
+
 
 def cache_response(ttl: int = 300):
     def decorator(func):
@@ -71,5 +79,7 @@ def cache_response(ttl: int = 300):
             result = await func(*args, **kwargs)
             cache[cache_key] = result
             return result
+
         return wrapper
+
     return decorator

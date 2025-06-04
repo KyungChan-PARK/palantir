@@ -27,6 +27,7 @@ def run(cmd):
     except subprocess.CalledProcessError as e:
         return False, str(e)
 
+
 def parse_radon_grade():
     try:
         with open("logs/radon.txt") as f:
@@ -38,6 +39,7 @@ def parse_radon_grade():
     except Exception:
         return 6
 
+
 def parse_mutmut_alive_pct():
     try:
         out = subprocess.check_output("mutmut results", shell=True, encoding="utf-8")
@@ -48,10 +50,12 @@ def parse_mutmut_alive_pct():
         pass
     return 100
 
+
 def write_prometheus_metrics(radon_grade, mutmut_alive):
     with open(PROM_METRICS, "w") as f:
         f.write(f"radon_complexity_grade {radon_grade}\n")
         f.write(f"mutation_coverage_alive_pct {mutmut_alive}\n")
+
 
 def write_error_report(phase, trace, extra=None):
     today = datetime.now().strftime("%Y%m%d")
@@ -62,12 +66,15 @@ def write_error_report(phase, trace, extra=None):
         f.write("##ERROR_REPORT##\n")
         f.write(f"phase: {phase}\n")
         f.write(f"traceback: {trace}\n")
-        f.write(f"agent_diagnosis: {phase} 단계에서 자동화 실패. 로그, 커버리지, 스타일, 보안, 복잡도, mutation, benchmark 상태를 점검하세요.\n")
+        f.write(
+            f"agent_diagnosis: {phase} 단계에서 자동화 실패. 로그, 커버리지, 스타일, 보안, 복잡도, mutation, benchmark 상태를 점검하세요.\n"
+        )
         if extra:
             f.write(f"extra: {extra}\n")
         f.write(f"env: {ENV}\n")
         f.write("##END_ERROR_REPORT##\n")
     print(f"[SELF-IMPROVE][ERROR] {phase} FAIL. See {path}")
+
 
 def main():
     today = datetime.now().strftime("%Y%m%d")
@@ -106,6 +113,7 @@ def main():
         sys.exit(1)
     else:
         print("[SELF-IMPROVE] ALL PASS")
+
 
 if __name__ == "__main__":
     main()

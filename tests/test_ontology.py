@@ -5,7 +5,6 @@ from main import app
 client = TestClient(app)
 
 
-
 def test_ontology_sync():
 
     res = client.post("/ontology/sync")

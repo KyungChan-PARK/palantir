@@ -10,23 +10,25 @@ from rich.console import Console
 
 console = Console()
 
+
 def load_latest_results() -> Tuple[datetime, Dict[str, float]]:
     """최신 성능 테스트 결과를 로드합니다."""
     results_dir = "performance_results"
     json_files = [f for f in os.listdir(results_dir) if f.endswith(".json")]
     if not json_files:
         raise FileNotFoundError("성능 테스트 결과 파일이 없습니다.")
-    
+
     latest_file = sorted(json_files)[-1]
     timestamp = datetime.strptime(
         latest_file.replace("performance_test_", "").replace(".json", ""),
-        "%Y%m%d_%H%M%S"
+        "%Y%m%d_%H%M%S",
     )
-    
+
     with open(os.path.join(results_dir, latest_file), "r", encoding="utf-8") as f:
         data = json.load(f)
-    
+
     return timestamp, data
+
 
 def generate_html_report(timestamp: datetime, results: Dict[str, float]) -> str:
     """HTML 보고서를 생성합니다."""
@@ -134,40 +136,45 @@ def generate_html_report(timestamp: datetime, results: Dict[str, float]) -> str:
     </body>
     </html>
     """
-    
+
     env = jinja2.Environment()
     template = env.from_string(template)
     return template.render(timestamp=timestamp, results=results)
+
 
 def save_report(html_content: str, timestamp: datetime):
     """HTML 보고서를 파일로 저장합니다."""
     reports_dir = "performance_results/reports"
     os.makedirs(reports_dir, exist_ok=True)
-    
+
     filename = f"performance_report_{timestamp.strftime('%Y%m%d_%H%M%S')}.html"
     filepath = os.path.join(reports_dir, filename)
-    
+
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(html_content)
-    
+
     return filepath
+
 
 def generate_report():
     """성능 테스트 보고서를 생성합니다."""
     try:
         # 최신 결과 로드
         timestamp, results = load_latest_results()
-        
+
         # HTML 보고서 생성
         html_content = generate_html_report(timestamp, results)
-        
+
         # 보고서 저장
         filepath = save_report(html_content, timestamp)
-        
+
         console.print(f"[green]성능 테스트 보고서가 생성되었습니다: {filepath}[/green]")
-        
+
     except Exception as e:
-        console.print(f"[bold red]보고서 생성 중 오류가 발생했습니다: {str(e)}[/bold red]")
+        console.print(
+            f"[bold red]보고서 생성 중 오류가 발생했습니다: {str(e)}[/bold red]"
+        )
+
 
 if __name__ == "__main__":
-    generate_report() 
+    generate_report()

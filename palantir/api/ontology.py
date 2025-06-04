@@ -4,6 +4,7 @@ from palantir.core.ontology_sync import sync_ontology_to_neo4j
 
 router = APIRouter()
 
+
 @router.post("/ontology/sync")
 def ontology_sync():
     # 실제 환경에서는 환경변수/시크릿에서 정보 주입

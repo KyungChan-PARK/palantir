@@ -5,8 +5,7 @@ from main import app
 client = TestClient(app)
 
 
-
-VALID_YAML = '''
+VALID_YAML = """
 
 name: test-pipeline
 
@@ -24,11 +23,10 @@ tasks:
 
     depends_on: []
 
-'''
+"""
 
 
-
-INVALID_YAML = '''
+INVALID_YAML = """
 
 name: test-pipeline
 
@@ -40,23 +38,25 @@ tasks:
 
     params: {}
 
-'''
-
+"""
 
 
 def test_pipeline_validate_success():
 
-    res = client.post("/pipeline/validate", files={"file": ("pipeline.yaml", VALID_YAML)})
+    res = client.post(
+        "/pipeline/validate", files={"file": ("pipeline.yaml", VALID_YAML)}
+    )
 
     assert res.status_code == 200
 
     assert res.json()["valid"] is True
 
 
-
 def test_pipeline_validate_fail():
 
-    res = client.post("/pipeline/validate", files={"file": ("pipeline.yaml", INVALID_YAML)})
+    res = client.post(
+        "/pipeline/validate", files={"file": ("pipeline.yaml", INVALID_YAML)}
+    )
 
     assert res.status_code == 200
 

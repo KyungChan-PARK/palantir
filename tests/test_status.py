@@ -5,7 +5,6 @@ from main import app
 client = TestClient(app)
 
 
-
 def test_status_keys():
 
     response = client.get("/status")

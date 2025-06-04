@@ -13,13 +13,16 @@ from palantir.core.policy_guard import cache_response, limiter, verify_jwt
 
 router = APIRouter()
 
+
 def get_llm_manager() -> LLMManager:
     """LLMManager 인스턴스 반환."""
     return LLMManager()
 
+
 class AskRequest(BaseModel):
     query: str
     mode: str = "sql"  # sql | pyspark
+
 
 @router.post("/ask")
 @limiter.limit("5/minute")
@@ -28,7 +31,7 @@ async def ask_endpoint(
     request: Request,
     body: AskRequest,
     user=Depends(verify_jwt),
-    llm=Depends(get_llm_manager)
+    llm=Depends(get_llm_manager),
 ) -> dict:
     """LLM 질의 및 코드 생성 엔드포인트.
 

@@ -2,12 +2,14 @@
 
 리포트 승인 시 DAG 등록 및 로그 출력을 담당한다.
 """
+
 from typing import Any
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = BackgroundScheduler()
 scheduler.start()
+
 
 def add_pipeline_job(dag: Any) -> None:
     """파이프라인 DAG 등록 및 승인 로그 출력.
