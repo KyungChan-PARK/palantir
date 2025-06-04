@@ -1,13 +1,13 @@
 """사용자 관리 시스템 모듈."""
 
-import os
 import logging
+import os
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import List, Optional
 from uuid import uuid4
 
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import create_engine, Column, String, Boolean, DateTime, JSON
+from sqlalchemy import JSON, Boolean, Column, DateTime, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 

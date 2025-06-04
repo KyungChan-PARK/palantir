@@ -1,14 +1,14 @@
 """인증 시스템 모듈."""
 
-import os
 import logging
+import os
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, Set
+from typing import Optional, Set
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Form, Depends, Request
+from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from jose import jwt, JWTError
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 

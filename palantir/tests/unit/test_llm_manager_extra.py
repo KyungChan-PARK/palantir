@@ -1,5 +1,7 @@
 import pytest
+
 from palantir.core.llm_manager import LLMManager
+
 
 def test_llm_manager_invalid_mode():
     llm = LLMManager(offline=True)
@@ -17,7 +19,6 @@ def test_llm_manager_offline_pyspark():
     assert code.startswith("df.filter")
 
 def test_llm_manager_provider_local():
-    import types
     class DummySettings:
         OFFLINE_MODE = False
         LLM_PROVIDER = "local"
@@ -42,8 +43,8 @@ def test_llm_manager_provider_unsupported():
 
 def test_llm_manager_openai_exception(monkeypatch):
     class DummyClient:
-        class chat:
-            class completions:
+        class Chat:
+            class Completions:
                 @staticmethod
                 def create(**kwargs):
                     raise Exception("fail")
@@ -60,8 +61,8 @@ def test_llm_manager_openai_exception(monkeypatch):
 
 def test_llm_manager_azure_exception(monkeypatch):
     class DummyClient:
-        class chat:
-            class completions:
+        class Chat:
+            class Completions:
                 @staticmethod
                 def create(**kwargs):
                     raise Exception("fail")

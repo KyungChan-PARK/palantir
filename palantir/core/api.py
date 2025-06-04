@@ -1,15 +1,13 @@
 """API 엔드포인트 모듈."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from typing import List, Optional
-from datetime import datetime
 
-from .auth import create_access_token, get_current_user
-from .user import UserDB, UserCreate, UserUpdate, UserResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+
+from .auth import get_current_user
 from .database import get_db
-from .monitoring import monitor_request, monitor_db_operation
-from .queue import async_task
+from .monitoring import monitor_request
+from .user import UserCreate, UserDB, UserResponse, UserUpdate
 
 router = APIRouter()
 
@@ -39,8 +37,7 @@ async def create_user(
         )
     
     # 사용자 생성 작업을 비동기로 처리
-    task_id = await async_task(create_user_task, user, db)
-    return {"task_id": task_id, "message": "사용자 생성이 시작되었습니다."}
+    raise NotImplementedError("create_user_task 함수가 구현되어 있지 않습니다.")
 
 @router.get("/users/me", response_model=UserResponse, tags=["users"])
 @monitor_request("GET", "/users/me")
@@ -105,8 +102,7 @@ async def update_user(
         )
     
     # 사용자 업데이트 작업을 비동기로 처리
-    task_id = await async_task(update_user_task, user_id, user_update, db)
-    return {"task_id": task_id, "message": "사용자 정보 업데이트가 시작되었습니다."}
+    raise NotImplementedError("update_user_task 함수가 구현되어 있지 않습니다.")
 
 @router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["users"])
 @monitor_request("DELETE", "/users/{user_id}")
@@ -130,8 +126,7 @@ async def delete_user(
         )
     
     # 사용자 삭제 작업을 비동기로 처리
-    task_id = await async_task(delete_user_task, user_id, db)
-    return {"task_id": task_id, "message": "사용자 삭제가 시작되었습니다."}
+    raise NotImplementedError("delete_user_task 함수가 구현되어 있지 않습니다.")
 
 # 인증 API
 @router.post("/auth/token", tags=["auth"])
@@ -146,8 +141,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     성공 시 액세스 토큰과 리프레시 토큰을 반환합니다.
     """
     # 로그인 작업을 비동기로 처리
-    task_id = await async_task(login_task, form_data)
-    return {"task_id": task_id, "message": "로그인이 처리 중입니다."}
+    raise NotImplementedError("login_task 함수가 구현되어 있지 않습니다.")
 
 @router.post("/auth/refresh", tags=["auth"])
 @monitor_request("POST", "/auth/refresh")
@@ -160,8 +154,7 @@ async def refresh_token(refresh_token: str):
     성공 시 새로운 액세스 토큰을 반환합니다.
     """
     # 토큰 갱신 작업을 비동기로 처리
-    task_id = await async_task(refresh_token_task, refresh_token)
-    return {"task_id": task_id, "message": "토큰 갱신이 처리 중입니다."}
+    raise NotImplementedError("refresh_token_task 함수가 구현되어 있지 않습니다.")
 
 @router.post("/auth/logout", tags=["auth"])
 @monitor_request("POST", "/auth/logout")
@@ -174,8 +167,7 @@ async def logout(refresh_token: str):
     리프레시 토큰을 블랙리스트에 추가합니다.
     """
     # 로그아웃 작업을 비동기로 처리
-    task_id = await async_task(logout_task, refresh_token)
-    return {"task_id": task_id, "message": "로그아웃이 처리되었습니다."}
+    raise NotImplementedError("logout_task 함수가 구현되어 있지 않습니다.")
 
 # 모니터링 API
 @router.get("/monitoring/stats", tags=["monitoring"])

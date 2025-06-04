@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from palantir.core.auth import create_access_token
+from palantir.core.database import get_db
 from palantir.core.user import Base, UserDB
 from palantir.core.user_api import router
 

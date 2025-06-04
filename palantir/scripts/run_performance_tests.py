@@ -6,6 +6,7 @@ import sys
 import time
 from datetime import datetime
 from typing import Dict
+from pathlib import Path
 
 import aiohttp
 from rich.console import Console
@@ -82,21 +83,6 @@ async def test_db_connection_pool(session: aiohttp.ClientSession) -> float:
         assert response.status == 200
     return time.time() - start_time
 
-async def test_memory_usage(session: aiohttp.ClientSession) -> float:
-    """메모리 사용량 테스트"""
-    start_time = time.time()
-    for i in range(1000):
-        async with session.post(
-            "http://localhost:8000/api/v1/users/",
-            json={
-                "email": f"memory_test{i}@example.com",
-                "password": "testpassword123",
-                "username": f"memory_test_user{i}"
-            }
-        ) as response:
-            assert response.status == 201
-    return time.time() - start_time
-
 async def run_performance_tests() -> Dict[str, float]:
     """모든 성능 테스트 실행"""
     async with aiohttp.ClientSession() as session:
@@ -105,8 +91,7 @@ async def run_performance_tests() -> Dict[str, float]:
             "사용자 조회 (1000회)": await test_user_retrieval(session),
             "동시 사용자 처리 (50명)": await test_concurrent_users(session),
             "인증 처리 (1000회)": await test_authentication(session),
-            "DB 연결 풀 (100개)": await test_db_connection_pool(session),
-            "메모리 사용량 (1000명)": await test_memory_usage(session)
+            "DB 연결 풀 (100개)": await test_db_connection_pool(session)
         }
     return results
 

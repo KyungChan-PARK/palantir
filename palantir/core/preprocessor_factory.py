@@ -5,14 +5,13 @@
 import io
 import json
 import tempfile
-from typing import Any, Dict, Union
+from typing import Any, Dict
 
 import fitz  # PyMuPDF
 import pandas as pd
 import pytesseract
-from PIL import Image
-from fastapi.responses import JSONResponse
 from fastapi import HTTPException
+from PIL import Image
 
 from palantir.core.clip_embed import embed_image_clip
 
@@ -92,7 +91,7 @@ def parse_pdf(content: bytes) -> str:
                     images.append(pytesseract.image_to_string(img))
                 ocr_text = "\n".join(images)
                 text += "\n" + ocr_text
-            except (ValueError, OSError) as exc:
+            except (ValueError, OSError):
                 # OCR 실패는 무시
                 pass
         if len(text.strip()) == 0:

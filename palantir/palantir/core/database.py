@@ -1,5 +1,6 @@
 """데이터베이스 연결 및 캐싱 설정 모듈."""
 
+import asyncio
 import json
 import logging
 import os
@@ -14,6 +15,8 @@ from redis import Redis
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
+
+from .user import UserDB
 
 logger = logging.getLogger(__name__)
 
