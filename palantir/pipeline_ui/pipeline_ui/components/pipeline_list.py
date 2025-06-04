@@ -56,7 +56,7 @@ class PipelineList(rx.Component):
         try:
             dt = datetime.fromisoformat(date_str)
             return dt.strftime("%Y-%m-%d %H:%M")
-        except:
+        except Exception:
             return date_str
 
     def render(self) -> rx.Component:

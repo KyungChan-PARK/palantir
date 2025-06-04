@@ -46,7 +46,7 @@ def test_rolling_delete(tmp_path):
 
 def test_backup_weaviate_mock(monkeypatch, tmp_path):
     class DummyClient:
-        class backup:
+        class Backup:
             @staticmethod
             def create(name, backend):
                 return None
