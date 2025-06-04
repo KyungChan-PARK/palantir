@@ -1,10 +1,24 @@
 import subprocess
 import sys
+import platform
 
 REQUIREMENTS = "requirements.txt"
+OFFLINE_PACKAGES_DIR = "offline_preparation/python_packages/unified"
+
+def get_numpy_wheel():
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+    
+    if system == "windows":
+        return f"{OFFLINE_PACKAGES_DIR}/numpy-2.2.6-cp313-cp313-win_amd64.whl"
+    elif system == "linux":
+        if "x86_64" in machine:
+            return f"{OFFLINE_PACKAGES_DIR}/numpy-2.2.6-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+    return None
 
 if __name__ == "__main__":
     try:
+        # Upgrade pip
         subprocess.check_call(
             [
                 sys.executable,
@@ -15,6 +29,24 @@ if __name__ == "__main__":
                 "pip",
             ]
         )
+
+        # Install NumPy from wheel
+        numpy_wheel = get_numpy_wheel()
+        if numpy_wheel:
+            subprocess.check_call(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    numpy_wheel,
+                ]
+            )
+            print("[OK] NumPy installed from local wheel.")
+        else:
+            print("[WARNING] No compatible NumPy wheel found for your system.")
+
+        # Install other dependencies
         subprocess.check_call(
             [
                 sys.executable,
@@ -25,6 +57,8 @@ if __name__ == "__main__":
                 REQUIREMENTS,
             ]
         )
+
+        # Install specific package versions
         subprocess.check_call(
             [sys.executable, "-m", "pip", "install", "fastapi==0.115.12"]
         )
