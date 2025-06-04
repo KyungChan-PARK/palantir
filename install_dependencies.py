@@ -1,20 +1,22 @@
+import platform
 import subprocess
 import sys
-import platform
 
 REQUIREMENTS = "requirements.txt"
 OFFLINE_PACKAGES_DIR = "offline_preparation/python_packages/unified"
 
+
 def get_numpy_wheel():
     system = platform.system().lower()
     machine = platform.machine().lower()
-    
+
     if system == "windows":
         return f"{OFFLINE_PACKAGES_DIR}/numpy-2.2.6-cp313-cp313-win_amd64.whl"
     elif system == "linux":
         if "x86_64" in machine:
             return f"{OFFLINE_PACKAGES_DIR}/numpy-2.2.6-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
     return None
+
 
 if __name__ == "__main__":
     try:

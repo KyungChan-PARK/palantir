@@ -50,8 +50,8 @@ def test_llm_manager_provider_unsupported():
 
 def test_llm_manager_openai_exception(monkeypatch):
     class DummyClient:
-        class chat:
-            class completions:
+        class Chat:
+            class Completions:
                 @staticmethod
                 def create(**kwargs):
                     raise Exception("fail")
@@ -71,8 +71,8 @@ def test_llm_manager_openai_exception(monkeypatch):
 
 def test_llm_manager_azure_exception(monkeypatch):
     class DummyClient:
-        class chat:
-            class completions:
+        class Chat:
+            class Completions:
                 @staticmethod
                 def create(**kwargs):
                     raise Exception("fail")
