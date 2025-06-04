@@ -7,9 +7,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from palantir.core.auth import create_access_token
+from palantir.core.database import get_db
 from palantir.core.user import Base, UserDB
 from palantir.core.user_api import router
-from palantir.core.database import get_db
 
 # 테스트용 데이터베이스 설정
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
