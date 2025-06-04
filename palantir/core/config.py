@@ -1,9 +1,10 @@
 """애플리케이션 설정 모듈."""
 
-import os
 import secrets
 from typing import List
+
 from pydantic import BaseSettings
+
 
 class Settings(BaseSettings):
     """애플리케이션 설정 클래스."""

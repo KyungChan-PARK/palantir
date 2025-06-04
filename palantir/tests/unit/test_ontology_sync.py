@@ -1,7 +1,10 @@
-from palantir.core.ontology_sync import sync_ontology_to_neo4j
-import tempfile
 import os
+import tempfile
+
 import yaml
+
+from palantir.core.ontology_sync import sync_ontology_to_neo4j
+
 
 def test_sync_ontology_to_neo4j(monkeypatch):
     class DummySession:

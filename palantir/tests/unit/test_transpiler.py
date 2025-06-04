@@ -1,5 +1,6 @@
 from palantir.core import transpiler
 
+
 def test_transpile_yaml_to_dag_online():
     d = {"name": "n", "tasks": [1,2]}
     out = transpiler.transpile_yaml_to_dag(d)

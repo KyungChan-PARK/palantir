@@ -1,16 +1,15 @@
 """성능 모니터링 모듈."""
 
-import os
-import psutil
 import logging
 import time
-from typing import Dict, Any
 from datetime import datetime
 from functools import wraps
+from typing import Any, Dict
 
-from prometheus_client import Counter, Histogram, Gauge
-from prometheus_fastapi_instrumentator import Instrumentator, metrics
+import psutil
+from prometheus_client import Counter, Gauge, Histogram
 from prometheus_client.exposition import start_http_server
+from prometheus_fastapi_instrumentator import Instrumentator
 
 logger = logging.getLogger(__name__)
 

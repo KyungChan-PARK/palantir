@@ -6,8 +6,8 @@ import types
 
 import pandas as _pd
 import pytest
-from pytest import MonkeyPatch
 from fastapi import HTTPException
+from pytest import MonkeyPatch
 
 # 스텁: embed_image_clip → 고정 벡터
 import palantir.core.preprocessor_factory as pf
@@ -175,7 +175,6 @@ async def test_preprocess_file_pdf(monkeypatch):
         def __getitem__(self, idx): return DummyPage()
     monkeypatch.setattr("fitz.open", lambda *a, **k: DummyDoc())
     monkeypatch.setattr("pytesseract.image_to_string", lambda img: "ocr text")
-    import io
     out = await pf.preprocess_file("test.pdf", "application/pdf", b"%PDF", "job3")
     assert out["type"] == "pdf"
     assert "error" in out

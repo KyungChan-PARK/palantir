@@ -1,6 +1,7 @@
 """AUTO-GEN TEST: line-cover stubs"""
 
 import importlib
+
 import palantir.core.scheduler as sch
 
 mod = importlib.import_module("palantir.core.scheduler")

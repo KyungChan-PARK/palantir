@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 import json
-import os
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import yaml
 from rich.console import Console
-from rich.progress import Progress
 
 console = Console()
 

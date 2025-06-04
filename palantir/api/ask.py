@@ -2,8 +2,8 @@
 
 쿼리→코드 변환 및 속도 제한, 캐시, 인증 적용.
 """
+
 from fastapi import APIRouter, Depends, Request
-from typing import Annotated
 from pydantic import (
     BaseModel,
 )

@@ -3,7 +3,7 @@
 import json
 import os
 from datetime import datetime
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 import jinja2
 from rich.console import Console

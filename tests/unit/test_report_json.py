@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
+
 from main import app
-from palantir.core.weaviate_store import store_to_weaviate, _memory_store
+from palantir.core.weaviate_store import _memory_store, store_to_weaviate
 
 
 def test_report_404_json():

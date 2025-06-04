@@ -5,10 +5,9 @@ import os
 import sys
 import time
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict
 
 import aiohttp
-import pytest
 from rich.console import Console
 from rich.table import Table
 
@@ -16,14 +15,7 @@ from rich.table import Table
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-from tests.performance.test_api_performance import (
-    test_user_creation_performance,
-    test_user_retrieval_performance,
-    test_concurrent_user_operations,
-    test_authentication_performance,
-    test_database_connection_pool,
-    test_memory_usage
-)
+from tests.performance.test_api_performance import test_memory_usage
 
 console = Console()
 

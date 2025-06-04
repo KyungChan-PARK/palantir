@@ -1,9 +1,11 @@
 """파이프라인 목록 컴포넌트."""
 
-import reflex as rx
-from typing import Dict, Any, List
-import httpx
 from datetime import datetime
+from typing import Any, Dict
+
+import httpx
+import reflex as rx
+
 
 class PipelineList(rx.Component):
     """파이프라인 목록을 표시하는 컴포넌트."""

@@ -1,15 +1,16 @@
 """백업 시스템 모듈."""
 
+import json
 import logging
 import os
 import shutil
 import subprocess
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
-import json
+from pathlib import Path
+from typing import Any, Dict
+
 import requests
 import weaviate
-from pathlib import Path
 
 # 환경 변수에서 설정 가져오기
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL")

@@ -1,14 +1,15 @@
 """메인 애플리케이션 모듈."""
 
 import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from palantir.core.config import settings
 from palantir.core.api import router as api_router
-from palantir.core.docs import setup_docs
-from palantir.core.security import SecurityMiddleware, RateLimitMiddleware
+from palantir.core.config import settings
 from palantir.core.database import init_db
+from palantir.core.docs import setup_docs
+from palantir.core.security import RateLimitMiddleware, SecurityMiddleware
 
 # 로깅 설정
 logging.basicConfig(

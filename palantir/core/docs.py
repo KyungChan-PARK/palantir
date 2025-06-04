@@ -1,17 +1,18 @@
 """API 문서 자동화 모듈."""
 
-from typing import Dict, Any
-from fastapi.openapi.utils import get_openapi
-from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
-from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, HTMLResponse
 import json
-import yaml
-import os
 from pathlib import Path
+from typing import Any, Dict
+
+import yaml
+from fastapi import FastAPI
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from palantir.core.config import settings
+
 
 def custom_openapi() -> Dict[str, Any]:
     """OpenAPI 스키마 생성."""

@@ -1,14 +1,14 @@
 """사용자 관리 시스템 테스트 모듈."""
 
+
 import pytest
-from datetime import datetime
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
 
-from palantir.core.user import Base, UserDB, UserCreate, UserUpdate
-from palantir.core.user_api import router
 from palantir.core.auth import create_access_token
+from palantir.core.user import Base, UserDB
+from palantir.core.user_api import router
 
 # 테스트용 데이터베이스 설정
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
@@ -60,7 +60,6 @@ def admin_user(db_session):
 def test_client(db_session):
     """테스트용 FastAPI 클라이언트를 생성합니다."""
     from fastapi import FastAPI
-    from fastapi.testclient import TestClient
     
     app = FastAPI()
     app.include_router(router)

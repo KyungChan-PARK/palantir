@@ -3,15 +3,13 @@
 업로드 파일의 MIME 타입을 검사하고, 전처리 후 저장한다.
 """
 import uuid
-import io
 from typing import Optional
-from PIL import Image
 
-from fastapi import APIRouter, File, UploadFile, HTTPException
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
 from palantir.core.preprocessor_factory import preprocess_file
-from palantir.core.weaviate_store import store_to_weaviate, _memory_store
+from palantir.core.weaviate_store import _memory_store, store_to_weaviate
 
 router = APIRouter()
 

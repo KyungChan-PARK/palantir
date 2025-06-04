@@ -1,7 +1,10 @@
-from fastapi.testclient import TestClient
-from main import app
-import os
 import builtins
+import os
+
+from fastapi.testclient import TestClient
+
+from main import app
+
 
 def test_metrics_endpoint_status():
     client = TestClient(app)

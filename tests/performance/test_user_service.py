@@ -1,13 +1,13 @@
-import pytest
 import asyncio
-import time
-from typing import List, Dict
 import random
 import string
+import time
+from typing import Dict, List
+
+import pytest
 
 from palantir.services.user_service import UserService
-from palantir.core.database import DatabaseManager
-from palantir.models.user import User
+
 
 @pytest.fixture(scope="module")
 async def user_service(db_manager):
