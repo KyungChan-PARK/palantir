@@ -1,4 +1,5 @@
-from palantir.core.weaviate_store import store_to_weaviate, get_data_by_job_id, _memory_store
+from palantir.core.weaviate_store import _memory_store, get_data_by_job_id, store_to_weaviate
+
 
 def test_store_and_get():
     job_id = "jobid"

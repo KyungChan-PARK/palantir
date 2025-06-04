@@ -1,5 +1,7 @@
-from palantir.core.visualization import generate_plotly_html
 import pandas as pd
+
+from palantir.core.visualization import generate_plotly_html
+
 
 def test_generate_plotly_html_table():
     df = pd.DataFrame({"a": [1,2]})

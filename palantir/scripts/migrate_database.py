@@ -2,11 +2,10 @@
 
 import asyncio
 import logging
-from typing import List
+
 import asyncpg
 
 from palantir.core.database import DatabaseManager
-from palantir.models.user import User
 
 logger = logging.getLogger(__name__)
 

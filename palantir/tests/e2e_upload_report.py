@@ -3,12 +3,12 @@ import os
 import random
 import string
 import tempfile
-import uuid
-import pandas as pd
-import pytest
-from fastapi.testclient import TestClient
-from main import app
+
 import numpy as np
+import pandas as pd
+from fastapi.testclient import TestClient
+
+from main import app
 
 client = TestClient(app)
 

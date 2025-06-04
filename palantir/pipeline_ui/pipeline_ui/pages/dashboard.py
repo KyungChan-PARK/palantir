@@ -1,16 +1,12 @@
 """The dashboard page."""
 
-import reflex as rx
 from datetime import datetime
-from typing import List, Dict, Any
 
+import reflex as rx
+
+from pipeline_ui.components import ErrorBoundary, PipelineList, SystemStatus
 from pipeline_ui.templates import template
-from pipeline_ui.components import (
-    SystemStatus,
-    PipelineList,
-    ErrorBoundary,
-    LoadingSpinner
-)
+
 
 @template(route="/dashboard", title="Dashboard")
 def dashboard() -> rx.Component:

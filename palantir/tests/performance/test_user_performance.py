@@ -1,17 +1,17 @@
 """사용자 관리 시스템 성능 테스트 모듈."""
 
-import pytest
 import asyncio
-import time
 import statistics
-from datetime import datetime
-from typing import List, Dict
+import time
+from typing import Dict, List
+
 import httpx
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from palantir.core.user import Base, UserDB
 from palantir.core.auth import create_access_token, get_password_hash
+from palantir.core.user import Base, UserDB
 from palantir.main import app
 
 # 테스트용 데이터베이스 설정
@@ -231,8 +231,9 @@ async def test_database_connection_pool_performance(async_client, admin_user):
 
 async def test_memory_usage_performance(async_client, admin_user):
     """메모리 사용량 성능 테스트."""
-    import psutil
     import os
+
+    import psutil
     
     process = psutil.Process(os.getpid())
     initial_memory = process.memory_info().rss / 1024 / 1024  # MB
@@ -259,7 +260,7 @@ async def test_memory_usage_performance(async_client, admin_user):
     final_memory = process.memory_info().rss / 1024 / 1024  # MB
     memory_increase = final_memory - initial_memory
     
-    print(f"\n메모리 사용량 통계:")
+    print("\n메모리 사용량 통계:")
     print(f"초기 메모리: {initial_memory:.2f}MB")
     print(f"최종 메모리: {final_memory:.2f}MB")
     print(f"메모리 증가량: {memory_increase:.2f}MB")

@@ -1,17 +1,17 @@
 """API 스모크 테스트."""
 
-from fastapi.testclient import TestClient
-import pytest
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
 import io
-import os
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
 
-from palantir.main import app
+import pytest
+from fastapi.testclient import TestClient
+
 from palantir.core import auth
+from palantir.core.ontology import Ontology
 from palantir.core.pipeline import Pipeline
 from palantir.core.report import Report
-from palantir.core.ontology import Ontology
+from palantir.main import app
 
 client = TestClient(app)
 

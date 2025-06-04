@@ -1,7 +1,9 @@
 import pytest
-from fastapi import Request, HTTPException
-from palantir.core import policy_guard
+from fastapi import HTTPException
 from jose import jwt
+
+from palantir.core import policy_guard
+
 
 class DummyRequest:
     def __init__(self, headers):
@@ -38,7 +40,6 @@ def test_verify_jwt_invalid():
     with pytest.raises(HTTPException):
         policy_guard.verify_jwt(creds)
 
-import asyncio
 @pytest.mark.asyncio
 async def test_cache_response():
     called = {}

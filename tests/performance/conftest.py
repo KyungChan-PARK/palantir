@@ -1,17 +1,16 @@
 """성능 테스트 설정 모듈."""
 
-import pytest
 import asyncio
-import aiohttp
 import time
-from typing import Generator, Dict, Any
+from typing import Any, Dict
+
+import aiohttp
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
-from palantir.core.config import settings
-from palantir.core.user import Base, UserDB
 from palantir.core.security import get_password_hash
+from palantir.core.user import Base, UserDB
 
 # 테스트 데이터베이스 URL
 TEST_DATABASE_URL = "sqlite:///./test_performance.db"

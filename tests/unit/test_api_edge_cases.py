@@ -1,8 +1,8 @@
-import io
 import pytest
-from fastapi.testclient import TestClient
-from main import app
 from fastapi import HTTPException
+from fastapi.testclient import TestClient
+
+from main import app
 
 # pipeline.py: invalid yaml, invalid schema
 
@@ -51,8 +51,9 @@ def test_auth_refresh_blacklisted():
 # core/preprocessor_factory.py: unknown mime
 
 def test_preprocess_file_unknown_mime():
-    from palantir.core.preprocessor_factory import preprocess_file
     import asyncio
+
+    from palantir.core.preprocessor_factory import preprocess_file
     with pytest.raises(HTTPException) as excinfo:
         asyncio.run(preprocess_file("file.unknown", "application/x-unknown", b"data", "jid"))
     assert excinfo.value.status_code == 415 

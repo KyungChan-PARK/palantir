@@ -1,5 +1,7 @@
 import pytest
+
 from palantir.core.llm_manager import LLMManager
+
 
 def test_llm_manager_invalid_mode():
     llm = LLMManager(offline=True)
@@ -17,7 +19,6 @@ def test_llm_manager_offline_pyspark():
     assert code.startswith("df.filter")
 
 def test_llm_manager_provider_local():
-    import types
     class DummySettings:
         OFFLINE_MODE = False
         LLM_PROVIDER = "local"

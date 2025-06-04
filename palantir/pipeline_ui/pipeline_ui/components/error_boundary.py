@@ -1,7 +1,9 @@
 """에러 바운더리 컴포넌트."""
 
+from typing import Optional
+
 import reflex as rx
-from typing import Optional, Any
+
 
 class ErrorBoundary(rx.Component):
     """자식 컴포넌트의 에러를 처리하는 컴포넌트."""

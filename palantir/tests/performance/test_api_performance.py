@@ -1,9 +1,9 @@
 """API 성능 테스트 모듈."""
 
-import pytest
 import asyncio
-import json
-from typing import List
+
+import pytest
+
 from palantir.core.security import create_access_token
 
 pytestmark = pytest.mark.asyncio
@@ -196,8 +196,9 @@ async def test_memory_usage(
     db_session
 ):
     """메모리 사용량 테스트."""
-    import psutil
     import os
+
+    import psutil
     
     process = psutil.Process(os.getpid())
     initial_memory = process.memory_info().rss / 1024 / 1024  # MB

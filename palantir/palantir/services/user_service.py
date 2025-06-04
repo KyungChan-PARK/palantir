@@ -1,16 +1,15 @@
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
-import bcrypt
+from datetime import timedelta
+from typing import Any, Dict, List, Optional
+
 import jwt
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-import asyncio
 
-from ..models.user import User
 from ..core.database import DatabaseManager, with_cache, with_retry
 from ..core.security import SecurityManager
+from ..models.user import User
+
 
 class UserService:
     def __init__(self, db: AsyncSession):
@@ -69,7 +68,7 @@ class UserService:
         
         # 캐시 무효화
         redis_client = await DatabaseManager.get_redis()
-        await redis_client.delete(f"get_users:0:100")
+        await redis_client.delete("get_users:0:100")
         
         return user
     
@@ -96,7 +95,7 @@ class UserService:
         redis_client = await DatabaseManager.get_redis()
         await redis_client.delete(f"get_user_by_id:{user_id}")
         await redis_client.delete(f"get_user_by_email:{user.email}")
-        await redis_client.delete(f"get_users:0:100")
+        await redis_client.delete("get_users:0:100")
         
         return user
     
@@ -117,7 +116,7 @@ class UserService:
         redis_client = await DatabaseManager.get_redis()
         await redis_client.delete(f"get_user_by_id:{user_id}")
         await redis_client.delete(f"get_user_by_email:{user.email}")
-        await redis_client.delete(f"get_users:0:100")
+        await redis_client.delete("get_users:0:100")
         
         return True
     

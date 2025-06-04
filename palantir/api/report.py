@@ -2,13 +2,13 @@
 
 업로드된 데이터의 리포트 생성 및 후속 파이프라인 트리거를 담당한다.
 """
-import os
 import io
+import os
 from typing import Any
 
+import pandas as pd
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
-import pandas as pd
 
 from palantir.core.scheduler import add_pipeline_job
 from palantir.core.visualization import generate_plotly_html
