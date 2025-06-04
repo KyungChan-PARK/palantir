@@ -1,0 +1,3 @@
+[submodule "palantir-math"]
+    path = palantir-math
+    url = <your-palantir-math-repo-url> 
