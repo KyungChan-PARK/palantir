@@ -2,13 +2,19 @@
 
 업로드된 데이터의 리포트 생성 및 후속 파이프라인 트리거를 담당한다.
 """
+
 import io
 import os
 from typing import Any
 
 import pandas as pd
 from fastapi import APIRouter, Form, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    StreamingResponse,
+)
 
 from palantir.core.scheduler import add_pipeline_job
 from palantir.core.visualization import generate_plotly_html
@@ -87,4 +93,8 @@ def download_csv(job_id: str) -> Any:
         return JSONResponse(status_code=404, content={"error": "CSV not found"})
     df = pd.DataFrame(data["data"])
     stream = df.to_csv(index=False).encode("utf-8")
-    return StreamingResponse(io.BytesIO(stream), media_type="text/csv", headers={"Content-Disposition": f"attachment; filename={job_id}.csv"})
+    return StreamingResponse(
+        io.BytesIO(stream),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={job_id}.csv"},
+    )

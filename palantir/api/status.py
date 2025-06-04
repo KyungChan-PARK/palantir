@@ -2,9 +2,11 @@
 
 서버 상태 확인용 엔드포인트 제공.
 """
+
 from fastapi import APIRouter
 
 router = APIRouter()
+
 
 @router.get("/status")
 def get_status() -> dict:

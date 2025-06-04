@@ -10,13 +10,14 @@ from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
+
 class BusinessError(Exception):
     def __init__(
         self,
         message: str,
         code: str,
         status_code: int = status.HTTP_400_BAD_REQUEST,
-        details: Optional[Dict[str, Any]] = None
+        details: Optional[Dict[str, Any]] = None,
     ):
         self.message = message
         self.code = code
@@ -24,11 +25,12 @@ class BusinessError(Exception):
         self.details = details or {}
         super().__init__(message)
 
+
 async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     error_id = str(uuid.uuid4())
     logger.error(
         f"Error ID: {error_id}, Path: {request.url.path}, Error: {str(exc)}",
-        exc_info=True
+        exc_info=True,
     )
 
     if isinstance(exc, BusinessError):
@@ -38,8 +40,8 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
                 "error_id": error_id,
                 "code": exc.code,
                 "message": exc.message,
-                "details": exc.details
-            }
+                "details": exc.details,
+            },
         )
 
     if isinstance(exc, (RequestValidationError, ValidationError)):
@@ -49,8 +51,8 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
                 "error_id": error_id,
                 "code": "VALIDATION_ERROR",
                 "message": "Validation error",
-                "details": exc.errors()
-            }
+                "details": exc.errors(),
+            },
         )
 
     # 개발 환경에서만 상세 에러 표시
@@ -61,11 +63,12 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
             "error_id": error_id,
             "code": "INTERNAL_SERVER_ERROR",
             "message": "An unexpected error occurred",
-            "details": str(exc) if is_debug else None
-        }
+            "details": str(exc) if is_debug else None,
+        },
     )
+
 
 def register_error_handlers(app):
     app.add_exception_handler(Exception, global_exception_handler)
     app.add_exception_handler(BusinessError, global_exception_handler)
-    app.add_exception_handler(RequestValidationError, global_exception_handler) 
+    app.add_exception_handler(RequestValidationError, global_exception_handler)

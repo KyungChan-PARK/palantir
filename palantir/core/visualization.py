@@ -2,6 +2,7 @@
 
 테이블, JSON, PDF, 이미지 등 다양한 타입을 HTML로 변환한다.
 """
+
 import base64
 import json
 from io import BytesIO
@@ -43,21 +44,25 @@ def generate_plotly_html(data: Dict[str, Any]) -> str:
     elif data.get("type") == "json":
         return f"<pre>{json.dumps(data['data'], indent=2, ensure_ascii=False)}</pre>"
     elif data.get("type") == "pdf":
-        text = data['text']
+        text = data["text"]
         if not text or len(text.strip()) == 0:
             text = "텍스트 추출 실패 (OCR 불가)"
         return f"<pre>{text[:2000]}</pre>"
     elif data.get("type") == "image":
         # 썸네일 생성
-        if 'content' in data:
-            img = Image.open(BytesIO(data['content']))
+        if "content" in data:
+            img = Image.open(BytesIO(data["content"]))
             img.thumbnail((128, 128))
             buf = BytesIO()
-            img.save(buf, format='PNG')
+            img.save(buf, format="PNG")
             b64 = base64.b64encode(buf.getvalue()).decode()
-            thumb_html = f"<img src='data:image/png;base64,{b64}' width='128' height='128'/><br>"
+            thumb_html = (
+                f"<img src='data:image/png;base64,{b64}' width='128' height='128'/><br>"
+            )
         else:
             thumb_html = ""
-        return f"{thumb_html}<pre>CLIP 벡터(512차원): {str(data['vector'][:8])} ...</pre>"
+        return (
+            f"{thumb_html}<pre>CLIP 벡터(512차원): {str(data['vector'][:8])} ...</pre>"
+        )
     else:
         return f"<pre>{str(data)[:1000]}</pre>"

@@ -2,6 +2,7 @@
 
 YAML 파싱, 스키마 검증, DAG 변환 및 등록을 담당한다.
 """
+
 import yaml
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
@@ -25,7 +26,9 @@ def validate_pipeline(file: UploadFile = File(...)) -> dict:
     try:
         data = yaml.safe_load(content)
     except yaml.YAMLError as exc:
-        raise HTTPException(status_code=400, detail=f"YAML parsing error: {exc}") from exc
+        raise HTTPException(
+            status_code=400, detail=f"YAML parsing error: {exc}"
+        ) from exc
     try:
         PipelineSchema(**data)
         return {"valid": True}
@@ -46,7 +49,9 @@ def submit_pipeline(file: UploadFile = File(...)) -> dict:
     try:
         data = yaml.safe_load(content)
     except yaml.YAMLError as exc:
-        raise HTTPException(status_code=400, detail=f"YAML parsing error: {exc}") from exc
+        raise HTTPException(
+            status_code=400, detail=f"YAML parsing error: {exc}"
+        ) from exc
     try:
         PipelineSchema(**data)
         dag = transpile_yaml_to_dag(data)

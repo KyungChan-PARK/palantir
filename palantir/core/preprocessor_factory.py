@@ -2,6 +2,7 @@
 
 각 파일 유형별로 데이터 추출 및 예외처리를 담당한다.
 """
+
 import io
 import json
 import tempfile
@@ -61,17 +62,21 @@ ALLOWED_MIME = [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ]
 
+
 def parse_text_plain(content: bytes) -> str:
     """text/plain 파일을 UTF-8로 디코딩."""
-    return content.decode("utf-8", 'ignore')
+    return content.decode("utf-8", "ignore")
+
 
 def parse_csv(content: bytes) -> pd.DataFrame:
     """CSV 파일을 DataFrame으로 파싱."""
     return pd.read_csv(io.BytesIO(content))
 
+
 def parse_json(content: bytes) -> Any:
     """JSON 파일을 파싱."""
     return json.loads(content.decode())
+
 
 def parse_pdf(content: bytes) -> str:
     """PDF 파일에서 텍스트 및 OCR 추출."""
@@ -85,9 +90,7 @@ def parse_pdf(content: bytes) -> str:
                 images = []
                 for page in doc:
                     pix = page.get_pixmap()
-                    img = Image.frombytes(
-                        "RGB", [pix.width, pix.height], pix.samples
-                    )
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
                     images.append(pytesseract.image_to_string(img))
                 ocr_text = "\n".join(images)
                 text += "\n" + ocr_text
@@ -98,15 +101,18 @@ def parse_pdf(content: bytes) -> str:
             text = "텍스트 추출 실패 (OCR 불가)"
         return text
 
+
 def parse_image(content: bytes) -> Dict[str, Any]:
     """이미지 파일에서 벡터 및 원본 바이트 추출."""
     img = Image.open(io.BytesIO(content))
     vector = embed_image_clip(img)
     return {"vector": vector, "content": content}
 
+
 def parse_xlsx(content: bytes) -> pd.DataFrame:
     """OpenXML Excel(xlsx) 파일을 DataFrame으로 파싱."""
     return pd.read_excel(io.BytesIO(content), engine="openpyxl")
+
 
 MIME_HANDLERS = {
     "text/plain": parse_text_plain,
@@ -116,6 +122,7 @@ MIME_HANDLERS = {
     "image/": parse_image,
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": parse_xlsx,
 }
+
 
 async def preprocess_file(
     filename: str, mime: str, content: bytes, job_id: str
@@ -140,7 +147,11 @@ async def preprocess_file(
                 if handler is None:
                     break
                 data = handler(content)
-                if k == "text/csv" or k == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                if (
+                    k == "text/csv"
+                    or k
+                    == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ):
                     return {"type": "table", "data": data.to_dict(), "job_id": job_id}
                 if k == "image/":
                     return {"type": "image", **data, "job_id": job_id}
@@ -150,9 +161,13 @@ async def preprocess_file(
                     return {"type": "text", "data": data, "job_id": job_id}
         # 4. Word/PPT 등 명시적 거부
         if (
-            mime.startswith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            mime.startswith(
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            )
             or filename.endswith(".docx")
-            or mime.startswith("application/vnd.openxmlformats-officedocument.presentationml.presentation")
+            or mime.startswith(
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            )
             or filename.endswith(".pptx")
         ):
             raise HTTPException(status_code=415, detail="unsupported file type")

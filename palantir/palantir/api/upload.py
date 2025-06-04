@@ -2,6 +2,7 @@
 
 업로드 파일의 MIME 타입을 검사하고, 전처리 후 저장한다.
 """
+
 import uuid
 from typing import Optional
 
@@ -22,6 +23,7 @@ ALLOWED_MIME = [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 ]
 
+
 def allowed_mime(mime: Optional[str]) -> bool:
     """허용된 MIME 타입인지 검사.
 
@@ -33,12 +35,14 @@ def allowed_mime(mime: Optional[str]) -> bool:
     if not mime:
         return False
     # Word/PPT는 명시적으로 거부
-    if (
-        mime.startswith("application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-        or mime.startswith("application/vnd.openxmlformats-officedocument.presentationml.presentation")
+    if mime.startswith(
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) or mime.startswith(
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     ):
         return False
     return any(mime.startswith(m) for m in ALLOWED_MIME)
+
 
 @router.post("/upload")
 async def upload(file: UploadFile = File(...)) -> JSONResponse:
@@ -59,4 +63,9 @@ async def upload(file: UploadFile = File(...)) -> JSONResponse:
     store_to_weaviate(result)
     if result.get("type") == "error":
         return JSONResponse(status_code=400, content=result)
-    return JSONResponse(content={"job_id": job_id, **({"type": result.get("type")} if "type" in result else {})})
+    return JSONResponse(
+        content={
+            "job_id": job_id,
+            **({"type": result.get("type")} if "type" in result else {}),
+        }
+    )

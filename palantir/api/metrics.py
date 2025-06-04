@@ -4,6 +4,7 @@ from fastapi import APIRouter, Response
 
 router = APIRouter()
 
+
 @router.get("/metrics/self_improve")
 def metrics_self_improve():
     path = "logs/self_improve_metrics.prom"

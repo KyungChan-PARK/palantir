@@ -7,6 +7,7 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class LLMManager:
     def __init__(self, api_key: Optional[str] = None, offline: Optional[bool] = None):
         if offline is not None:
@@ -30,7 +31,9 @@ class LLMManager:
                 logger.warning("AzureOpenAI SDK 초기화 실패: %s", e)
                 self.client = None
         else:
-            logger.warning("지원하지 않는 LLM_PROVIDER '%s' — mock 모드로 전환", self.provider)
+            logger.warning(
+                "지원하지 않는 LLM_PROVIDER '%s' — mock 모드로 전환", self.provider
+            )
             self.client = None
 
     def _mock_generate(self, query: str, mode: str) -> str:

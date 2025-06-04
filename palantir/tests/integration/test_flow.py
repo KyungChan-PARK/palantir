@@ -5,18 +5,16 @@ from main import app
 client = TestClient(app)
 
 
-
 def test_upload_report_flow():
 
-    resp=client.post('/upload',files={'file':('s.csv',b'a,b\n1,2','text/csv')})
+    resp = client.post("/upload", files={"file": ("s.csv", b"a,b\n1,2", "text/csv")})
 
-    assert resp.status_code==200
+    assert resp.status_code == 200
 
-    job_id=resp.json()['job_id']
+    job_id = resp.json()["job_id"]
 
-    report=client.get(f'/report/{job_id}', headers={"accept": "application/json"})
+    report = client.get(f"/report/{job_id}", headers={"accept": "application/json"})
 
-    assert report.status_code==200
+    assert report.status_code == 200
 
-    assert report.json()['type']=='table'
-
+    assert report.json()["type"] == "table"

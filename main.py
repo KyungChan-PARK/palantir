@@ -21,7 +21,7 @@ from palantir.core.scheduler import scheduler
 app = FastAPI(
     title="Palantir-Inspired Local AI Ops Suite",
     description="로컬 AI Ops 플랫폼",
-    version="5.0.0"
+    version="5.0.0",
 )
 
 # 에러 핸들러 등록
@@ -45,11 +45,12 @@ scheduler.add_job(
     "cron",
     hour=3,
     minute=0,
-    id="self_improve"
+    id="self_improve",
 )
 
 # 백업 작업 등록
 register_backup_jobs(scheduler)
+
 
 @app.get("/status")
 async def get_status():
@@ -62,7 +63,7 @@ async def get_status():
     try:
         r = httpx.get(
             f"{os.getenv('WEAVIATE_URL', 'http://localhost:8080')}/v1/.well-known/ready",
-            timeout=1
+            timeout=1,
         )
         weaviate_ok = r.status_code == 200
     except Exception as e:
@@ -74,10 +75,7 @@ async def get_status():
     try:
         driver = GraphDatabase.driver(
             neo4j_url,
-            auth=(
-                os.getenv("NEO4J_USER", "neo4j"),
-                os.getenv("NEO4J_PASS", "test")
-            )
+            auth=(os.getenv("NEO4J_USER", "neo4j"), os.getenv("NEO4J_PASS", "test")),
         )
         with driver.session() as session:
             session.run("RETURN 1")
@@ -92,15 +90,16 @@ async def get_status():
         "neo4j": "ok" if neo4j_ok else "error",
         "self_improve": "ok" if self_improve_log else "pending",
         "version": "5.0.0",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
+
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=int(os.getenv("PORT", 8000)),
-        reload=os.getenv("DEBUG", "false").lower() == "true"
+        reload=os.getenv("DEBUG", "false").lower() == "true",
     )

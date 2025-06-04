@@ -5,9 +5,4 @@ from .loading_spinner import LoadingSpinner
 from .pipeline_list import PipelineList
 from .system_status import SystemStatus
 
-__all__ = [
-    "SystemStatus",
-    "PipelineList",
-    "ErrorBoundary",
-    "LoadingSpinner"
-]
+__all__ = ["SystemStatus", "PipelineList", "ErrorBoundary", "LoadingSpinner"]

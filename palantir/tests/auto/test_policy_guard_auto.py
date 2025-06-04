@@ -10,11 +10,9 @@ import palantir.core.policy_guard as pg
 mod = importlib.import_module("palantir.core.policy_guard")
 
 
-
 def test_line_13():
 
     assert True
-
 
 
 def test_line_14():
@@ -22,11 +20,9 @@ def test_line_14():
     assert True
 
 
-
 def test_line_15():
 
     assert True
-
 
 
 def test_line_16():
@@ -34,11 +30,9 @@ def test_line_16():
     assert True
 
 
-
 def test_line_17():
 
     assert True
-
 
 
 class DummyCred:
@@ -46,13 +40,11 @@ class DummyCred:
     credentials = "invalid.jwt.token"
 
 
-
 def test_verify_jwt_invalid():
 
     with pytest.raises(HTTPException):
 
         pg.verify_jwt(DummyCred())
-
 
 
 def test_rate_limit_for_tier():
@@ -66,7 +58,6 @@ def test_rate_limit_for_tier():
     assert pg.rate_limit_for_tier("other") == "5/minute"
 
 
-
 def test_user_tier_func_bearer(monkeypatch):
 
     class DummyReq:
@@ -76,7 +67,6 @@ def test_user_tier_func_bearer(monkeypatch):
     assert pg.user_tier_func(DummyReq()) == "5/minute"
 
 
-
 def test_user_tier_func_none():
 
     class DummyReq:
@@ -84,6 +74,3 @@ def test_user_tier_func_none():
         headers = {}
 
     assert pg.user_tier_func(DummyReq()) == "5/minute"
-
-
-

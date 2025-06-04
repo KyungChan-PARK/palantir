@@ -9,4 +9,4 @@ def test_status():
     try:
         assert res.status_code == 200 and res.json()["status"] == "ok"
     except Exception:
-        assert res.status_code == 200 or res.status_code == 404 
+        assert res.status_code == 200 or res.status_code == 404
