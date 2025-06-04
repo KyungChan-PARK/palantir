@@ -3,11 +3,24 @@ repos:
     rev: 24.4.2
     hooks:
       - id: black
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.13.2
+        language_version: python3
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v5.13.2
     hooks:
       - id: isort
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+        language_version: python3
+  - repo: https://github.com/pre-commit/mirrors-pylint
+    rev: v3.1.0
     hooks:
-      - id: flake8 
+      - id: pylint
+        language_version: python3
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        language_version: python3
+  - repo: https://github.com/pre-commit/mirrors-pytest
+    rev: v8.2.2
+    hooks:
+      - id: pytest
+        language_version: python3 
