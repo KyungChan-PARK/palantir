@@ -1,10 +1,13 @@
 """파이프라인 목록 컴포넌트."""
 
+import logging
 from datetime import datetime
 from typing import Any, Dict
 
 import httpx
 import reflex as rx
+
+logger = logging.getLogger(__name__)
 
 
 class PipelineList(rx.Component):
@@ -38,7 +41,8 @@ class PipelineList(rx.Component):
                             "loading": False,
                         }
                     )
-        except Exception:
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("pipeline_list failed: %s", exc)
             self.state.update(
                 {"error": "파이프라인 목록을 가져올 수 없습니다.", "loading": False}
             )
@@ -58,7 +62,8 @@ class PipelineList(rx.Component):
         try:
             dt = datetime.fromisoformat(date_str)
             return dt.strftime("%Y-%m-%d %H:%M")
-        except Exception:
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("format_date failed: %s", exc)
             return date_str
 
     def render(self) -> rx.Component:

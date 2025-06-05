@@ -1,0 +1,9 @@
+ruff>=0.4
+black>=24.3
+mypy>=1.10
+pytest>=8
+pytest-cov
+types-requests
+types-PyYAML
+types-six
+scikit-learn ; extra == "full"

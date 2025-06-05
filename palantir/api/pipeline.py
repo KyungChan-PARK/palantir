@@ -1,13 +1,16 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
-from typing import Dict, Any
+from typing import Any, Dict
+
 import yaml
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 router = APIRouter()
 
+
 class PipelineConfig(BaseModel):
     name: str
     config: Dict[str, Any]
+
 
 @router.post("/pipeline/validate")
 async def validate_pipeline(file: UploadFile = File(...)):
@@ -25,6 +28,7 @@ async def validate_pipeline(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.post("/pipeline/submit")
 async def submit_pipeline(file: UploadFile = File(...)):
     try:
@@ -36,15 +40,17 @@ async def submit_pipeline(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.post("/pipeline/create")
 async def create_pipeline(config: PipelineConfig):
     # 테스트에서 mock 객체의 id를 반환하도록 처리
-    if hasattr(config, 'id'):
+    if hasattr(config, "id"):
         pipeline_id = config.id
     else:
         pipeline_id = 1
     return {"status": "success", "id": pipeline_id, "pipeline": config}
 
+
 @router.get("/pipeline")
 def pipeline():
-    return {"message": "pipeline endpoint"} 
+    return {"message": "pipeline endpoint"}
