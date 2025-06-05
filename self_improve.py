@@ -16,7 +16,7 @@ PHASES = [
     ("pytest-benchmark", "pytest --benchmark-only --benchmark-autosave"),
 ]
 
-ENV = "Py 3.13 • Windows 11"
+ENV = "Py 3.13 • Linux"
 PROM_METRICS = "logs/self_improve_metrics.prom"
 
 

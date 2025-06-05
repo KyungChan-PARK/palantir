@@ -17,6 +17,6 @@
 7. **CI 통과**
    - GitHub Actions CI가 통과되어야 병합됩니다.
 
-## Windows 11 개발자 추가 팁
-- PowerShell 실행 시 `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`를 통해 스크립트 실행을 허용하세요.
-- `setup_codex_env.ps1`는 관리자 권한 PowerShell에서 실행하는 것을 권장합니다. 
+## Linux 개발자 추가 팁
+- 의존성 설치 및 테스트를 자동화하려면 `bash setup_offline.sh`를 실행하세요.
+- Python 3.13과 Docker가 시스템에 설치되어 있어야 합니다.

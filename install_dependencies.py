@@ -6,15 +6,25 @@ REQUIREMENTS = "requirements.txt"
 OFFLINE_PACKAGES_DIR = "offline_preparation/python_packages/unified"
 
 
-def get_numpy_wheel():
+def get_numpy_wheel() -> str | None:
+    """Return the path to the NumPy wheel for Linux x86_64.
+
+    The project is now Linux only. If executed on any other platform,
+    a RuntimeError is raised to alert the developer.
+    """
+
     system = platform.system().lower()
     machine = platform.machine().lower()
 
-    if system == "windows":
-        return f"{OFFLINE_PACKAGES_DIR}/numpy-2.2.6-cp313-cp313-win_amd64.whl"
-    elif system == "linux":
-        if "x86_64" in machine:
-            return f"{OFFLINE_PACKAGES_DIR}/numpy-2.2.6-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+    if system != "linux":
+        raise RuntimeError("This project supports Linux only.")
+
+    if "x86_64" in machine:
+        return (
+            f"{OFFLINE_PACKAGES_DIR}/numpy-2.2.6-cp313-cp313t-"
+            "manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+        )
+
     return None
 
 

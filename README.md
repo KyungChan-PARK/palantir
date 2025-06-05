@@ -70,7 +70,7 @@ loki:
 ## 문서
 - [docs/deployment.md](docs/deployment.md)
 - [docs/troubleshooting.md](docs/troubleshooting.md)
-- [docs/grafana_setup_win.md](docs/grafana_setup_win.md)
+- [docs/grafana_setup_linux.md](docs/grafana_setup_linux.md)
 - [changelog_v5.1.md](changelog_v5.1.md)
 
 ## CI
@@ -85,7 +85,6 @@ loki:
 3. [Quick Start](#quick-start)
    1. [Online Mode](#online-mode)
    2. [Offline Mode (Air-gapped)](#offline-mode-air%E2%80%91gapped)
-   3. [Windows 11 Setup Notes](#windows11-setup-notes)
 4. [Usage Examples](#usage-examples)
 5. [API Reference](docs/API_REFERENCE.md)
 6. [Product Requirements](docs/FEATURE_PRD.md)
