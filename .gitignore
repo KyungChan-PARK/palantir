@@ -1,7 +1,52 @@
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Coverage
+.coverage
+coverage.xml
+htmlcov/
+
+# Cache
+.cache/
+.pytest_cache/
+
+# Backup
+backups/
+*.snap
+*.dump
+
+# Large files
+*.tar.gz
+*.whl
+
 .env
 .venv
 venv/
@@ -17,7 +62,4 @@ pytest_cache/
 .DS_Store
 .vscode/
 .idea/
-error_report_*.md
-logs/
-docs/_build/
-.ruff.toml 
+error_report_*.md 

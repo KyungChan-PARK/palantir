@@ -1,10 +1,10 @@
-# Palantir-Inspired Local AI Ops Suite v5.0
+# Palantir-Inspired Local AI Ops Suite v5.1
 
 ## 🟢 운영 자동화 규칙
 - **gpt-4.1 에이전트**가 설계·코드·테스트·배포·문서화·운영 자동화 전담
 - 실패 시 logs/error_report_YYYYMMDD.md 기록, o3 패치 후 재시도
-- self_improve.py: 매일 03:00 ruff/black/pytest/Sphinx 루프, 개선점 기록
-- 품질 게이트: ruff 0.4, black 88, pytest-cov≥90%, CI 헬스체크(`/status`, `/metrics`)
+- self_improve.py: 매일 03:00 ruff/black/bandit/safety/radon/mutmut/pytest/benchmark 루프
+- 품질 게이트: ruff 0.4, black 88, pytest-cov≥92%, mutation 생존율≤30%, 복잡도≤C
 - LLM은 OpenAI API 단일 사용, 추가 정보 필요시 웹 리서치 자동
 
 ## 🏁 스프린트/스테이지별 자동화
@@ -15,6 +15,7 @@
 | 2 | 파이프라인 UI+transpiler, 온톨로지 sync | YAML→Job 실행 |
 | 3 | /ask+AutoGen, Zero-Trust | 자연어 SQL 작동 |
 | 4 | 백업, Prometheus/Loki, Release | 헬스체크 OK/OK |
+| 5 | Self-Improve Loop, 보안 강화 | 품질 게이트 통과 |
 
 ---
 
@@ -49,12 +50,14 @@ python -m pytest --cov=app --cov-fail-under=90
 - neo4j: `backups/neo4j_YYYYMMDD.dump`
 
 ## 보안
-- JWT 인증(Authorization: Bearer)
-- 5/min rate-limit, LRU 128 캐시
+- JWT 인증(Authorization: Bearer) + refresh 토큰 회전
+- Gold/Free tier rate-limit, LRU 128 캐시
+- OWASP dependency-check CI 통합
 
 ## 관측
-- Prometheus: `/metrics`
+- Prometheus: `/metrics`, `/metrics/self_improve`
 - Loki: sidecar 설정 예시
+- Grafana 대시보드 자동화
 
 ```yaml
 loki:
@@ -67,13 +70,14 @@ loki:
 ## 문서
 - [docs/deployment.md](docs/deployment.md)
 - [docs/troubleshooting.md](docs/troubleshooting.md)
-- [changelog_v5.0.md](changelog_v5.0.md)
+- [docs/grafana_setup_win.md](docs/grafana_setup_win.md)
+- [changelog_v5.1.md](changelog_v5.1.md)
 
 ## CI
 - `.github/workflows/ci.yml` 자동화
 
 ## 버전
-- v5.0 (2025)
+- v5.1 (2025)
 
 ## 📑 Table of Contents
 1. [Project Overview](#project-overview)
