@@ -20,6 +20,7 @@ services:
         limits:
           cpus: '1'
           memory: 1G
+    user: "${UID:-1000}:${GID:-1000}"
 
   db:
     image: postgres:13
@@ -36,6 +37,7 @@ services:
       retries: 5
     ports:
       - "5432:5432"
+    user: "${UID:-1000}:${GID:-1000}"
 
   redis:
     image: redis:6
@@ -48,13 +50,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    user: "${UID:-1000}:${GID:-1000}"
 
   prometheus:
     image: prom/prometheus
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -66,13 +69,14 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    user: "${UID:-1000}:${GID:-1000}"
 
   grafana:
     image: grafana/grafana
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
@@ -84,12 +88,33 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    user: "${UID:-1000}:${GID:-1000}"
 
 volumes:
   postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/data/postgres
+      o: bind
   redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/data/redis
+      o: bind
   prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/data/prometheus
+      o: bind
   grafana_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${PWD}/data/grafana
+      o: bind
 
 networks:
   default:
