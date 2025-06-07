@@ -1,9 +1,13 @@
-from typing import Any
+from typing import Any, Callable
+from functools import wraps
+import hashlib
+import json
 
 from fastapi import HTTPException
 from jose import jwt
 
 from .config import settings
+from .cache import get_cache, set_cache
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
@@ -36,3 +40,29 @@ def user_tier_func(request: Any) -> str:
         except Exception:
             return "5/minute"
     return "5/minute"
+
+
+def cache_response(ttl: int = 300):
+    """응답을 캐시하는 데코레이터입니다."""
+    def decorator(func: Callable):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # 캐시 키 생성
+            key_parts = [func.__name__]
+            if args:
+                key_parts.extend([str(arg) for arg in args])
+            if kwargs:
+                key_parts.extend([f"{k}:{v}" for k, v in sorted(kwargs.items())])
+            cache_key = hashlib.md5("|".join(key_parts).encode()).hexdigest()
+
+            # 캐시된 응답 확인
+            cached_response = await get_cache(cache_key)
+            if cached_response:
+                return json.loads(cached_response)
+
+            # 함수 실행 및 결과 캐시
+            result = await func(*args, **kwargs)
+            await set_cache(cache_key, json.dumps(result), ttl)
+            return result
+        return wrapper
+    return decorator
