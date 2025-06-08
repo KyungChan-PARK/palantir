@@ -1,7 +1,10 @@
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+    
     OFFLINE_MODE: bool = False
     LLM_PROVIDER: str = "openai"
     SECRET_KEY: str = "development-secret-key"
@@ -16,7 +19,7 @@ class Settings(BaseSettings):
     # 인증 설정
     AUTH_SECRET_KEY: str = "development-auth-secret-key"
     JWT_LIFETIME_SECONDS: int = 3600
-    AUTH_DATABASE_URL: str = "sqlite+aiosqlite:///./users.db"
+    AUTH_DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/palantir"
 
     # SMTP 설정 (개발 환경용)
     SMTP_HOST: str = "localhost"
@@ -28,8 +31,14 @@ class Settings(BaseSettings):
     # 레이트 리미팅
     RATE_LIMIT_PER_MINUTE: int = 5
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    # PostgreSQL 설정
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+    POSTGRES_DB: str = "palantir"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_POOL_SIZE: int = 20
+    POSTGRES_MAX_OVERFLOW: int = 10
+    POSTGRES_POOL_TIMEOUT: int = 30
 
 settings = Settings()
