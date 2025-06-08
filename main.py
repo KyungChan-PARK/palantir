@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from datetime import datetime
 
 import httpx
@@ -18,12 +19,16 @@ from palantir.core.backup import register_backup_jobs
 from palantir.core.error_handlers import register_error_handlers
 from palantir.core.monitoring import setup_monitoring
 from palantir.core.scheduler import scheduler
+from palantir.utils.wsl import assert_wsl
 
 app = FastAPI(
     title="Palantir-Inspired Local AI Ops Suite",
-    description="로컬 AI Ops 플랫폼",
-    version="5.0.0",
+    description="로컬 AI Ops 플랫폼 (WSL 전용)",
+    version="5.1.0",
 )
+
+# WSL 체크 (애플리케이션 부팅 시)
+assert_wsl()
 
 # 레이트 리미팅 미들웨어 추가
 app.add_middleware(RateLimitMiddleware)
@@ -45,7 +50,7 @@ app.include_router(report_router)
 
 # 스케줄러 설정
 scheduler.add_job(
-    lambda: subprocess.call(["python", "self_improve.py"]),
+    lambda: subprocess.call([sys.executable, "self_improve.py"]),
     "cron",
     hour=3,
     minute=0,
@@ -93,7 +98,7 @@ async def get_status():
         "weaviate": "ok" if weaviate_ok else "error",
         "neo4j": "ok" if neo4j_ok else "error",
         "self_improve": "ok" if self_improve_log else "pending",
-        "version": "5.0.0",
+        "version": "5.1.0",
         "timestamp": datetime.now().isoformat(),
     }
 
