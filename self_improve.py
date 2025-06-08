@@ -4,6 +4,7 @@ import subprocess
 import sys
 import traceback
 from datetime import datetime
+from palantir.utils.wsl import assert_wsl
 
 PHASES = [
     ("ruff", "ruff --fix ."),
@@ -16,8 +17,11 @@ PHASES = [
     ("pytest-benchmark", "pytest --benchmark-only --benchmark-autosave"),
 ]
 
-ENV = "Py 3.13 • Windows 11"
+ENV = "Py 3.13 • WSL Ubuntu"
 PROM_METRICS = "logs/self_improve_metrics.prom"
+
+# WSL 체크
+assert_wsl()
 
 
 def run(cmd):

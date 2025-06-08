@@ -1,6 +1,7 @@
-.PHONY: test performance-test performance-report performance-analyze performance-report-html clean docs migrate
+.PHONY: test performance-test performance-report performance-analyze performance-report-html clean docs migrate wsl-check
 
 # 환경 변수
+PY := $(shell command -v python || command -v python3)
 export PYTHONPATH := $(shell pwd)
 export DATABASE_URL := postgresql://postgres:postgres@localhost:5432/palantir_test
 export REDIS_URL := redis://localhost:6379/0
@@ -12,23 +13,27 @@ test:
 
 # 성능 테스트 실행
 performance-test:
-	python scripts/run_performance_tests.py
+	$(PY) scripts/run_performance_tests.py
 
 # 성능 테스트 결과 분석
 performance-analyze:
-	python scripts/analyze_performance.py
+	$(PY) scripts/analyze_performance.py
 
 # 성능 테스트 HTML 보고서 생성
 performance-report-html:
-	python scripts/generate_performance_report.py
+	$(PY) scripts/generate_performance_report.py
 
 # API 문서 생성
 docs:
-	python scripts/generate_api_docs.py
+	$(PY) scripts/generate_api_docs.py
 
 # 데이터베이스 마이그레이션
 migrate:
-	python scripts/migrate_database.py
+	$(PY) scripts/migrate_database.py
+
+# WSL 환경 점검
+wsl-check:
+	$(PY) scripts/check_wsl_env.py
 
 # 테스트 결과 정리
 clean:

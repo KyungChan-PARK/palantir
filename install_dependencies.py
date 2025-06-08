@@ -1,10 +1,13 @@
 import platform
 import subprocess
 import sys
+from palantir.utils.wsl import assert_wsl
 
 REQUIREMENTS = "requirements.txt"
 OFFLINE_PACKAGES_DIR = "offline_preparation/python_packages/unified"
 
+# WSL 환경 체크
+assert_wsl()
 
 def get_numpy_wheel():
     system = platform.system().lower()
