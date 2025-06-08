@@ -5,8 +5,8 @@ from palantir.sdk.registry import register, COMPONENTS_JSON, get_registered_comp
 from palantir.sdk.components.base import ComponentMeta
 
 class TestComponent(ComponentMeta):
-    name = "TestComponent"
-    params = {"foo": "bar"}
+    name: str = "TestComponent"
+    params: dict = {"foo": "bar"}
     def execute(self, **kwargs):
         return "ok"
 

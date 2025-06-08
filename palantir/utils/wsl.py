@@ -19,6 +19,8 @@ def is_wsl() -> bool:
     1. /proc/version 문자열에 'microsoft' 포함 여부 검사
     2. platform.release() 에서 'microsoft' / 'WSL' 키워드 검색
     """
+    if os.environ.get("IGNORE_WSL_CHECK") == "1":
+        return True
     if os.name != "posix":
         # Windows 파워쉘 등
         return False
