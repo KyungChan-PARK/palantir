@@ -2,4 +2,6 @@
 
 from typing import List
 
-__all__: List[str] = [] 
+__all__: List[str] = []
+
+"""Ingestion layer: streaming consumers etc.""" 
