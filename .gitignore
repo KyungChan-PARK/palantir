@@ -1,17 +1,41 @@
-# Python
+## Updated ignore list
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts
+/build/
+/dist/
+/palantir.egg-info/
+
+# Generated reports, logs, and data
+/ui/reports/
+/apps/*/reports/
+*.log
+*.csv
+*.html
+jobid_feedback.txt
+
+# Local environment and IDE settings
+.venv/
+.env
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Python
 *.py[cod]
 *$py.class
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 
-# IDE
-.vscode/
-.idea/
-
 # Logs
-*.log
 logs/
 
 # Database
@@ -19,15 +43,7 @@ logs/
 *.sqlite3
 
 # Environment
-.env
-.venv/
-venv/
 ENV/
-
-# Build
-build/
-dist/
-*.egg-info/
 
 # Coverage
 .coverage
@@ -47,19 +63,8 @@ backups/
 *.tar.gz
 *.whl
 
-.env
-.venv
-venv/
-build/
-dist/
 .eggs/
 *.egg-info/
 *.egg
-.coverage
-htmlcov/
-.cache/
-pytest_cache/
-.DS_Store
-.vscode/
-.idea/
+
 error_report_*.md 
