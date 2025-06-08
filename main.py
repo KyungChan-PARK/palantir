@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+import asyncio
 
 import httpx
 from fastapi import FastAPI
@@ -21,6 +22,7 @@ from palantir.core.monitoring import setup_monitoring
 from palantir.core.scheduler import scheduler
 from palantir.utils.wsl import assert_wsl
 from palantir.core.settings import settings
+from palantir.ingest.kafka_consumer import consume_messages
 
 app = FastAPI(
     title="Palantir-Inspired Local AI Ops Suite",
@@ -61,6 +63,9 @@ scheduler.add_job(
 # 백업 작업 등록
 register_backup_jobs(scheduler)
 
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(consume_messages())
 
 @app.get("/status")
 async def get_status():
