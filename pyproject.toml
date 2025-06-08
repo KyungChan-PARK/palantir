@@ -25,6 +25,11 @@ fastapi-users = {extras = ["sqlalchemy"], version = "^12.1.2"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-multipart = "^0.0.6"
+typer = {extras = ["all"], version = "^0.9.0"}
+pydantic-settings = "^2.1.0"
+neo4j = "^5.14.0"
+httpx = "^0.26.0"
+uvicorn = "^0.27.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
@@ -47,4 +52,7 @@ filterwarnings = ["ignore::DeprecationWarning"]
 line-length = 120
 exclude = [".venv", "venv", "build", "dist", "__pycache__", "docs/_build"]
 select = ["E", "F", "I", "N"]
-ignore = ["E501"] 
+ignore = ["E501"]
+
+[tool.poetry.scripts]
+palantir = "palantir.cli:app" 

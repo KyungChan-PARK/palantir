@@ -20,6 +20,7 @@ from palantir.core.error_handlers import register_error_handlers
 from palantir.core.monitoring import setup_monitoring
 from palantir.core.scheduler import scheduler
 from palantir.utils.wsl import assert_wsl
+from palantir.core.settings import settings
 
 app = FastAPI(
     title="Palantir-Inspired Local AI Ops Suite",
