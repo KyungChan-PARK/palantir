@@ -18,6 +18,30 @@ function Log($msg) {
     $msg | Tee-Object -FilePath $LogFile -Append
 }
 
+# Node.js 버전 체크
+try {
+    $nodeVersion = node --version
+    if ($nodeVersion -notmatch "v1[8-9]|v[2-9][0-9]") {
+        Write-Host "⚠ Node.js 18.x 이상이 필요합니다. 현재 버전: $nodeVersion"
+        Write-Host "Node.js 다운로드: https://nodejs.org/"
+        exit 1
+    }
+    Write-Host "✓ Node.js 버전 확인 완료: $nodeVersion"
+} catch {
+    Write-Host "⚠ Node.js가 설치되어 있지 않습니다."
+    Write-Host "Node.js 다운로드: https://nodejs.org/"
+    exit 1
+}
+
+# yarn 설치 및 설정
+try {
+    yarn --version
+} catch {
+    Write-Host "yarn 패키지 매니저 설치 중..."
+    npm install -g yarn
+    yarn config set registry https://registry.npmjs.org
+}
+
 try {
     Log "[1] 가상환경 생성 중..."
     if (-Not (Test-Path $VENV)) {

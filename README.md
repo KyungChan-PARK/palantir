@@ -35,6 +35,14 @@
 - CI: ruff, black, pytest-cov≥90%, artefact 업로드
 
 ## 설치 및 실행
+### 시스템 요구사항
+- Python 3.13
+- Node.js 18.x 이상 (UI 개발 및 빌드용)
+- OpenAI API Key (환경변수 OPENAI_API_KEY)
+- Neo4j, Weaviate, Prometheus, Loki, Grafana (Docker 권장)
+- SLACK_WEBHOOK_URL 환경변수(옵션)
+
+### Online Mode
 ```bash
 python install_dependencies.py
 uvicorn main:app --reload
