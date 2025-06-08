@@ -121,6 +121,37 @@ services:
     networks:
       - default
 
+  prefect-server:
+    image: prefecthq/prefect:2.14.9-python3.10
+    command: ["prefect", "server", "start"]
+    ports:
+      - "4200:4200"  # Prefect UI
+      - "8080:8080"  # Prefect API
+    environment:
+      - PREFECT_SERVER_API_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - default
+
+  prefect-agent:
+    image: prefecthq/prefect:2.14.9-python3.10
+    command: ["prefect", "agent", "start", "-q", "default"]
+    environment:
+      - PREFECT_API_URL=http://prefect-server:4200/api
+    depends_on:
+      - prefect-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://prefect-server:4200/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - default
+
 volumes:
   postgres_data:
     driver: local

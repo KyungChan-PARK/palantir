@@ -3,6 +3,7 @@ import json
 import logging
 from kafka import KafkaConsumer
 from typing import Any
+from palantir.process.rag_ingestion_flow import rag_ingestion_flow
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,15 @@ async def consume_messages() -> None:
     logger.info("Subscribed to topic '%s'", KAFKA_TOPIC)
 
     def _blocking_read():
+        batch = []
         for message in consumer:
             try:
                 logger.info("Received message: %s", message.value)
-                # TODO: integrate with pipeline executor
+                batch.append(message.value)
+                if len(batch) >= 10:  # 예시: 10개씩 배치 처리
+                    logger.info("Triggering rag_ingestion_flow for batch of %d", len(batch))
+                    asyncio.run(rag_ingestion_flow(batch))
+                    batch.clear()
             except Exception as exc:
                 logger.error("Failed processing message: %s", exc)
 

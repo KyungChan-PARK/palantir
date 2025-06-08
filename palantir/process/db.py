@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Generator, Optional
 
 import duckdb
-from prefect.logging import get_run_logger
+from loguru import logger
 
 
 @contextlib.contextmanager
@@ -22,7 +22,7 @@ def get_duckdb_connection(
     Yields:
         DuckDB connection object.
     """
-    logger = get_run_logger()
+    # logger = get_run_logger()
     
     if db_path:
         path = Path(db_path)
@@ -44,7 +44,6 @@ def init_db(db_path: str) -> None:
     Args:
         db_path: Path to the database file.
     """
-    logger = get_run_logger()
     logger.info(f"Initializing database at {db_path}")
     
     with get_duckdb_connection(db_path) as conn:
