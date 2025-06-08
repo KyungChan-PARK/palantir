@@ -12,6 +12,15 @@ def test_metrics_endpoint_status():
     assert r.status_code in (200, 404)
 
 
+def test_metrics_fields():
+    client = TestClient(app)
+    r = client.get("/metrics")
+    if r.status_code == 200:
+        data = r.json()
+        assert "business" in data
+        assert "active_users" in data["business"]
+
+
 def test_metrics_self_improve_204(tmp_path, monkeypatch):
     client = TestClient(app)
     monkeypatch.setattr(os.path, "exists", lambda path: False)
