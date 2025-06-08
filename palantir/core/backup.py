@@ -1,8 +1,9 @@
 import os
 import shutil
-import requests
 import subprocess
 from datetime import datetime
+
+import requests
 import weaviate
 
 BACKUP_ROOT = "backups"
@@ -43,7 +44,7 @@ def backup_weaviate():
         os.makedirs(path, exist_ok=True)
         
         # Weaviate 백업 생성
-        backup = client.backup.create(
+        client.backup.create(
             backup_id=fname,
             backend="filesystem",
             include_classes=["*"]
