@@ -10,6 +10,25 @@
 
 프로젝트의 로컬 환경 설정, 설치, 실행 방법에 대한 자세한 가이드는 **[Deployment Guide](./docs/deployment.md)** 문서를 참고하십시오.
 
+## 🏃 Quick Start
+
+```bash
+# 1. 의존성 설치
+poetry install --no-interaction --with dev
+
+# 2. Docker 서비스 기동 (DB · Kafka · Grafana 등)
+docker-compose up -d
+
+# 3. 개발 서버 실행
+poetry run uvicorn main:app --reload --port 8000
+
+# 4. Streamlit UI
+poetry run palantir run ui  # CLI 확장 예정
+```
+
+서비스 기동 후 http://localhost:8000/docs 에서 OpenAPI 스펙을,
+http://localhost:3000 에서 Grafana 대시보드를 확인할 수 있습니다.
+
 ## 核心コンポーネント (Core Components)
 
 * `/palantir`: 핵심 비즈니스 로직과 도메인 모델이 포함된 소스 코드 루트입니다.
