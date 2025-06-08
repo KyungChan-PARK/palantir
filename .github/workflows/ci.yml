@@ -7,32 +7,51 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: palantir_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-          
+          python-version: '3.13'
       - name: Install Poetry
         run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          
-      - name: Install dependencies
-        run: poetry install
-        
-      - name: Run linters
+          pip install poetry
+      - name: Install deps
         run: |
-          poetry run ruff check .
-          poetry run black --check .
-          poetry run mypy .
-          
-      - name: Run tests
-        run: poetry run pytest --cov=palantir tests/
-        
+          poetry install --no-interaction
+      - name: Lint
+        run: |
+          poetry run ruff .
+      - name: Type Check
+        run: |
+          poetry run mypy palantir/
+      - name: Tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/palantir_test
+        run: |
+          poetry run pytest -q
+      - name: Generate API Docs
+        run: |
+          poetry run python -m palantir.cli generate-api-docs
+      - name: Commit Docs
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: docs/API_REFERENCE.md
+          message: "docs: auto-update API reference"
+          default_author: github_actions
+
   docker:
     needs: test
     runs-on: ubuntu-latest
