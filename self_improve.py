@@ -5,6 +5,7 @@ import sys
 import traceback
 from datetime import datetime
 from palantir.utils.wsl import assert_wsl
+from loguru import logger
 
 PHASES = [
     ("ruff", "ruff --fix ."),
@@ -77,7 +78,7 @@ def write_error_report(phase, trace, extra=None):
             f.write(f"extra: {extra}\n")
         f.write(f"env: {ENV}\n")
         f.write("##END_ERROR_REPORT##\n")
-    print(f"[SELF-IMPROVE][ERROR] {phase} FAIL. See {path}")
+    logger.info(f"[SELF-IMPROVE][ERROR] {phase} FAIL. See {path}")
 
 
 def main():
@@ -116,7 +117,7 @@ def main():
     if failed:
         sys.exit(1)
     else:
-        print("[SELF-IMPROVE] ALL PASS")
+        logger.info("[SELF-IMPROVE] ALL PASS")
 
 
 if __name__ == "__main__":

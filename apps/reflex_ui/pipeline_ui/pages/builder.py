@@ -1,6 +1,6 @@
 import reflex as rx
 from typing import List, Dict
-
+import httpx
 from ..components.react_flow_wrapper import ReactFlowWrapper
 
 class PipelineBuilderState(rx.State):
@@ -8,6 +8,18 @@ class PipelineBuilderState(rx.State):
         {"id": "1", "position": {"x": 100, "y": 100}, "data": {"label": "Input"}},
     ]
     edges: List[Dict] = []
+    available_nodes: List[Dict] = []
+
+    async def fetch_available_nodes(self):
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get("http://localhost:8000/registry/components")
+                if resp.status_code == 200:
+                    self.available_nodes = resp.json()
+                else:
+                    self.available_nodes = []
+        except Exception:
+            self.available_nodes = []
 
     def handle_nodes_change(self, new_nodes: List[Dict]):
         self.nodes = new_nodes
@@ -22,12 +34,19 @@ class PipelineBuilderState(rx.State):
 
 @rx.page(route="/builder", title="Pipeline Builder")
 def builder_page():
+    # 팔레트 노드 동적 로딩
+    rx.run(PipelineBuilderState.fetch_available_nodes())
     return rx.container(
         rx.hstack(
             rx.vstack(
                 rx.heading("Processors"),
-                rx.button("Load Data", width="100%"),
-                rx.button("Clean Text", width="100%"),
+                *[
+                    rx.button(
+                        node["name"],
+                        width="100%",
+                        key=node["id"]
+                    ) for node in PipelineBuilderState.available_nodes
+                ],
                 spacing="4",
             ),
             ReactFlowWrapper(

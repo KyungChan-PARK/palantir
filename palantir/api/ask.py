@@ -5,6 +5,8 @@ from palantir.core.auth import get_current_user
 from palantir.core.database import SessionLocal, get_db
 from palantir.core.models import LLMFeedback
 from sqlalchemy.orm import Session
+from palantir.core.rag_pipeline import run_rag_qa
+import os
 
 class AskRequest(BaseModel):
     query: str
@@ -29,6 +31,21 @@ async def ask_post(request: AskRequest, current_user = Depends(get_current_user)
     if request.mode == "sql":
         # SQL 모드 처리
         return {"result": "SQL query result"}
+    if request.mode == "rag":
+        # RAG 모드 처리
+        weaviate_url = os.getenv("WEAVIATE_URL", "http://localhost:8080")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key:
+            return {"error": "OPENAI_API_KEY 환경변수가 필요합니다."}
+        try:
+            result = run_rag_qa(
+                query=request.query,
+                weaviate_url=weaviate_url,
+                openai_api_key=openai_api_key,
+            )
+            return {"result": result["result"], "sources": result.get("source_documents", [])}
+        except Exception as e:
+            return {"error": str(e)}
     return {"result": "Default query result"}
 
 @router.post("/ask/feedback")

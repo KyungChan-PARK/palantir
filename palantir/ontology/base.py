@@ -42,6 +42,8 @@ class OntologyAction(BaseModel):
     description: Optional[str] = None
     object_types: List[str] = Field(...)  # Object types this action can be applied to
     parameters: Dict[str, Any] = Field(default_factory=dict)
+    handler: str = Field(...)
+    parameters_schema: Dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     
     class Config:

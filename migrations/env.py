@@ -28,11 +28,17 @@ target_metadata = [AuthBase.metadata, CoreBase.metadata]
 # ... etc.
 
 def get_url():
-    settings = Settings()
-    return (
-        f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
-        f"{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
-    )
+    url = config.get_main_option("sqlalchemy.url")
+    if url and url.startswith("sqlite"):
+        return url
+    try:
+        settings = Settings()
+        return (
+            f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
+            f"{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+        )
+    except Exception:
+        return url
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

@@ -1,0 +1,33 @@
+providers:
+  - id: palantir-ask-rag
+    type: openai
+    url: http://localhost:8000/ask
+    method: POST
+    headers:
+      Content-Type: application/json
+    body:
+      query: "{{query}}"
+      mode: "rag"
+
+tests:
+  - vars:
+      query: "팔란티어 플랫폼의 주요 특징은?"
+    assert:
+      - contains: "데이터"
+      - contains: "분석"
+  - vars:
+      query: "AIP에서 온톨로지란 무엇인가?"
+    assert:
+      - contains: "비즈니스 객체"
+      - contains: "관계"
+  - vars:
+      query: "RAG 파이프라인의 핵심 단계는?"
+    assert:
+      - contains: "임베딩"
+      - contains: "검색"
+      - contains: "Weaviate"
+
+assert:
+  - factuality
+  - answer-relevance
+  - context-faithfulness 

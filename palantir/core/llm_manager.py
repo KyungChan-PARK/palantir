@@ -1,9 +1,7 @@
-import logging
 import os
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from peft import PeftModel
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 BASE_MODEL = "gpt2"
 ADAPTER_PATH = "./fine_tuned_adapter"
@@ -16,6 +14,6 @@ if os.path.exists(ADAPTER_PATH):
         model = PeftModel.from_pretrained(model, ADAPTER_PATH)
         logger.info("LoRA adapter loaded.")
     except Exception as exc:
-        logger.error("Failed loading adapter: %s", exc)
+        logger.error(f"Failed loading adapter: {exc}")
 
 __all__ = ["model", "tokenizer"]

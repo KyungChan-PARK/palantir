@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
 import asyncio
-import logging
+from loguru import logger
 
 import asyncpg
 
 from palantir.core.database import DatabaseManager
-
-logger = logging.getLogger(__name__)
 
 
 async def create_tables(pool: asyncpg.Pool):
@@ -103,5 +101,6 @@ async def migrate():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    # logging.basicConfig(level=logging.INFO)
+    logger.info("Starting database migration...")
     asyncio.run(migrate())
