@@ -2,9 +2,25 @@
 
 ## 1. 환경 준비
 - Python 3.13
+- Node.js 18.x 이상 (UI 빌드 및 개발용)
 - OpenAI API Key (환경변수 OPENAI_API_KEY)
 - Neo4j, Weaviate, Prometheus, Loki, Grafana (Docker 권장)
 - SLACK_WEBHOOK_URL 환경변수(옵션)
+
+## 2. UI 빌드 환경 설정
+```bash
+# Node.js 18.x 이상 설치 확인
+node --version  # v18.x.x 이상
+
+# yarn 설치 및 레지스트리 설정
+npm install -g yarn
+yarn config set registry https://registry.npmjs.org
+
+# UI 의존성 설치 및 빌드
+cd pipeline_ui
+yarn install
+yarn build
+```
 
 ## 2. 의존성 설치
 ```bash

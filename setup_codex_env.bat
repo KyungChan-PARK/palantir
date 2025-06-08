@@ -12,6 +12,31 @@ set UI_PKG=%PKG_ROOT%\pipeline_ui_packages
 set VENV=.venv
 set PKG_DIR=offline_preparation\python_packages\unified
 
+REM Node.js 버전 체크
+node --version > nul 2>&1
+if errorlevel 1 (
+    echo [!] Node.js가 설치되어 있지 않습니다.
+    echo Node.js 다운로드: https://nodejs.org/
+    exit /b 1
+)
+
+for /f "tokens=* usebackq" %%F in (`node --version`) do set NODE_VERSION=%%F
+echo %NODE_VERSION% | findstr /r "v1[8-9]\.|v[2-9][0-9]\." > nul
+if errorlevel 1 (
+    echo [!] Node.js 18.x 이상이 필요합니다. 현재 버전: %NODE_VERSION%
+    echo Node.js 다운로드: https://nodejs.org/
+    exit /b 1
+)
+echo [✓] Node.js 버전 확인 완료: %NODE_VERSION%
+
+REM yarn 설치 및 설정
+yarn --version > nul 2>&1
+if errorlevel 1 (
+    echo yarn 패키지 매니저 설치 중...
+    call npm install -g yarn
+    call yarn config set registry https://registry.npmjs.org
+)
+
 call :log [1] 가상환경 생성 중...
 if not exist %VENV% (
     python -m venv %VENV%
