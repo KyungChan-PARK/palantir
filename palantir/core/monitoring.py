@@ -1,2 +1,6 @@
+from .metrics import RequestMetricsMiddleware
+
+
 def setup_monitoring(app):
-    pass 
+    """Attach monitoring middlewares to the FastAPI app."""
+    app.add_middleware(RequestMetricsMiddleware)
