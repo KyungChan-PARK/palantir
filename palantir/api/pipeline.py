@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
-from typing import Dict, Any
+from typing import Dict, Any, List
 import yaml
 from pydantic import BaseModel
 
@@ -8,6 +8,10 @@ router = APIRouter()
 class PipelineConfig(BaseModel):
     name: str
     config: Dict[str, Any]
+
+class VisualPipeline(BaseModel):
+    nodes: List[dict]
+    edges: List[dict]
 
 @router.post("/pipeline/validate")
 async def validate_pipeline(file: UploadFile = File(...)):
@@ -47,4 +51,15 @@ async def create_pipeline(config: PipelineConfig):
 
 @router.get("/pipeline")
 def pipeline():
-    return {"message": "pipeline endpoint"} 
+    return {"message": "pipeline endpoint"}
+
+def transpile_visual_to_yaml(data: VisualPipeline) -> str:
+    tasks = []
+    for node in data.nodes:
+        tasks.append({"id": node.get("id"), "type": node["data"].get("label", "task")})
+    return yaml.safe_dump({"tasks": tasks})
+
+@router.post("/pipeline/visual")
+async def visual_pipeline(payload: VisualPipeline):
+    yaml_str = transpile_visual_to_yaml(payload)
+    return {"yaml": yaml_str} 
