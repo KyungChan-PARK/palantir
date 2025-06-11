@@ -106,7 +106,7 @@ jobs:
     - name: Python 설정
       uses: actions/setup-python@v2
       with:
-        python-version: '3.13'
+        python-version: '3.11'
 
     - name: CUDA 설치
       if: ${{ runner.os == 'Linux' }}
@@ -154,7 +154,7 @@ jobs:
     - name: Python 설정
       uses: actions/setup-python@v2
       with:
-        python-version: '3.13'
+        python-version: '3.11'
 
     - name: 의존성 설치
       run: |
@@ -176,7 +176,7 @@ jobs:
     - name: Python 설정
       uses: actions/setup-python@v2
       with:
-        python-version: '3.13'
+        python-version: '3.11'
 
     - name: 보안 검사 도구 설치
       run: |
