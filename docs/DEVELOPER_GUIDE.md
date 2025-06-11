@@ -239,15 +239,19 @@ logger.info("이벤트 발생", extra={"user_id": 123})
 - 프로젝트 폴더로 이동: `cd /mnt/c/palantir`
 
 ### 2. 가상환경 및 의존성 관리
-- Python 3.12 기반 venv + pip 사용 권장
+- Python 3.11 기반 venv + pip 사용 권장
 - requirements.txt(프로덕션), requirements-dev.txt(개발/테스트) 분리 관리
 - 설치 예시:
 ```bash
-python3.12 -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
+```
+- 일부 패키지는 시스템 라이브러리(예: `graphviz`)가 필요하므로 Ubuntu에서는 다음과 같이 설치하세요.
+```bash
+sudo apt-get update && sudo apt-get install -y graphviz graphviz-dev
 ```
 
 ### 3. 불필요 파일/캐시/DB/로그/가상환경 정리 및 용량 최적화

@@ -8,7 +8,7 @@
 
 | 구분 | 목표(참고 로드맵) | 현재 구현 현황 | 완료 도 |
 |------|-----------------|---------------|--------|
-| **개발 환경** | Python 3.13 지원, Poetry 의존성 관리, Docker 멀티 스테이지, CI/CD 구축 | Poetry 마이그레이션 및 `Dockerfile` 다단계 빌드 완료, GitHub Actions (lint/test/build) 적용, Linux 호환성 개선 | ✅ (100%) |
+| **개발 환경** | Python 3.11 지원, Poetry 의존성 관리, Docker 멀티 스테이지, CI/CD 구축 | Poetry 마이그레이션 및 `Dockerfile` 다단계 빌드 완료, GitHub Actions (lint/test/build) 적용, Linux 호환성 개선 | ✅ (100%) |
 | **데이터 수집 · ETL** | Prefect/ Airflow 기반 ETL DAG, 다양한 소스 연동 | Prefect 2.0 ETL flow (CSV→DuckDB) 구현, 외부 API ingestion 스텁 추가 | 🟢 (70%) – 다중 소스 커넥터 추가 필요 |
 | **저장소** | DuckDB + 그래프DB(Neo4j/NetworkX) | DuckDB, NetworkX 인메모리 그래프 repo 완료, Weaviate 스크립트 초기 버전 존재 | 🟢 (70%) – Neo4j 실행/CI 미연동, Vector Store RAG 미완료 |
 | **Ontology 레이어** | Object/Link/Action/Function 모델 + 버전/권한 관리 | Repository + Graph search, CRUD API, NetworkX, Pydantic models 완비 | 🟢 (80%) – Action Triggered Workflow 미구현, 권한 모델 부족 |
