@@ -362,3 +362,39 @@ agent.md 1에서 식별된 주요 기능적 공백과 성숙한 AIP 유사 플�
 51. Overview • Ontology \- Palantir, 6월 8, 2025에 액세스, [https://palantir.com/docs/foundry/ontology/overview/](https://palantir.com/docs/foundry/ontology/overview/)  
 52. Wrapping React Overview \- Reflex, 6월 8, 2025에 액세스, [https://reflex.dev/docs/wrapping-react/overview/](https://reflex.dev/docs/wrapping-react/overview/)  
 53. Example \- Reflex, 6월 8, 2025에 액세스, [https://reflex.dev/docs/wrapping-react/example/](https://reflex.dev/docs/wrapping-react/example/)
+
+---
+
+## [2025-06-11] Palantir 프로젝트 AI 에이전트 작업 및 최신 개발상황 반영
+
+### 1. WSL2/Ubuntu 환경 자동화 및 권장
+- PowerShell/Windows 환경에서는 일부 명령이 동작하지 않으므로, WSL2 Ubuntu 환경에서만 완전 자동화/최적화 가능
+- 프로젝트 폴더 이동: `cd /mnt/c/palantir`
+
+### 2. 가상환경/의존성/캐시/DB/로그/테스트 파일 정리 및 용량 최적화
+- 아래 명령어로 모든 불필요 파일/폴더 완전 삭제:
+  `rm -rf .venv __pycache__ .pytest_cache .mypy_cache .coverage .hypothesis .cache`
+  `find . -name '*.pyc' -delete`
+  `find . -name '*.pyo' -delete`
+  `find . -name '*.db' -delete`
+  `find . -name '*.log' -delete`
+  `sudo rm -rf ./data/postgres`
+
+### 3. requirements.txt/requirements-dev.txt 분리 및 최신화
+- passlib, promptfoo 등 PyPI 버전 이슈 발생 시 지원 버전으로 수정
+- requirements.txt(프로덕션), requirements-dev.txt(개발/테스트) 분리 관리
+
+### 4. docker-compose/buildx/alembic/pytest/uvicorn 등 실제 실행 및 검증
+- buildx 미설치 시 `docker buildx install`로 설치
+- docker-compose로 서비스 실행: `docker-compose up -d --build`
+- alembic 마이그레이션: `alembic upgrade head`
+- 전체 테스트: `pytest`
+- FastAPI 서버: `uvicorn main:app --host 0.0.0.0 --port 8000`
+- 상태 확인: `curl http://localhost:8000/api/status` → {"status":"ok"}
+
+### 5. encountered 이슈 및 해결법, 실전 운영/개발 팁
+- 환경변수 미설정 시 경고, 권한 문제 발생 시 sudo 사용, PowerShell 환경의 한계와 전환 방법 등 실전 팁 추가
+
+### 6. 문서 자동화 및 최신화
+- scripts/generate_architecture_diagram.py로 아키텍처 다이어그램 자동 생성
+- mkdocs, API 문서 자동화 등 최신화
