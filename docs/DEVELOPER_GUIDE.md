@@ -4,6 +4,53 @@
 
 ---
 
+## 1. 프로젝트 개요
+- FastAPI, PostgreSQL, Weaviate, Prometheus, Grafana, MkDocs, Pytest 등 최신 스택
+- 불필요한 폴더/파일/스크립트/설정(archive, apps/reflex_ui, site, setup_offline.sh, weaviate_boot.py, config/pylintrc_utf8.ini, promptfooconfig.yaml 등) 완전 삭제
+
+## 2. 개발 환경 및 의존성
+- **WSL2 Ubuntu 환경 강력 권장**
+- Python 3.12 이상, venv + pip 기반 가상환경 사용
+- requirements.txt 단일 파일로 dev/prod 의존성 통합 관리
+
+## 3. 환경설정 및 실행 절차
+```bash
+# 1. 가상환경 생성 및 활성화
+python3 -m venv venv
+source venv/bin/activate
+
+# 2. 의존성 설치
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# 3. 서비스 실행 (도커)
+docker-compose up -d --build
+
+# 4. DB 마이그레이션
+alembic upgrade head
+
+# 5. 전체 테스트
+pytest
+
+# 6. 서버 실행
+uvicorn main:app --host 0.0.0.0 --port 8000
+
+# 7. 상태 확인
+curl http://localhost:8000/api/status
+```
+
+## 4. 문서화 및 자동화
+- MkDocs 기반 정적 문서: mkdocs serve/build
+- 시스템 아키텍처 다이어그램 자동 생성: scripts/generate_architecture_diagram.py
+- Makefile, .pre-commit-config.yaml, pyproject.toml 등 자동화/품질 관리 참고
+
+## 5. 신규 개발자 온보딩
+- docs/README.md, docs/DEVELOPER_GUIDE.md, README.md 참고
+- 불필요한 폴더/파일/스크립트/설정은 이미 정리됨
+- 의존성/실행/테스트/배포/문서화 절차 위주로 온보딩
+
+---
+
 ## 1. 프로젝트 개요 (Project Vision)
 본 프로젝트는 Palantir Foundry / AIP 철학을 오픈소스 스택으로 재현하여, 온톨로지 기반 데이터 통합·실시간 파이프라인·AI 어시스트 기능을 단일 플랫폼에 제공합니다.
 
