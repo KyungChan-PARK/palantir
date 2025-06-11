@@ -1,54 +1,44 @@
-# Core dependencies
-fastapi>=0.109.0
-pydantic>=2.5.0
-uvicorn>=0.27.0
-sqlmodel>=0.0.14
-python-dotenv>=1.0.0
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.6
+# Core Application & Web Framework
+fastapi==0.110.0
+uvicorn[standard]==0.29.0
+pydantic==2.6.4
+pydantic-settings==2.2.1
+SQLAlchemy==2.0.29
+alembic==1.13.1
+psycopg2-binary==2.9.9
+redis==5.0.3
 
-# Database drivers
-psycopg2-binary>=2.9.9
-redis>=5.0.1
+# AI & Langchain
+langchain==0.1.14
+langchain-community==0.0.31
+langchain-core==0.1.40
+langchain-openai==0.1.1
+torch==2.2.2
+torchvision==0.17.2
+transformers==4.39.3
+sentence-transformers==2.6.1
+accelerate==0.28.0
 
-# Development tools
-pytest>=8.0.0
-pytest-cov>=4.1.0
-pytest-asyncio>=0.23.0
-httpx>=0.26.0
-black>=24.1.0
-ruff>=0.2.0
+# Vector Store
+weaviate-client==4.5.4
 
-# DB Drivers
-neo4j>=5.14.0
-weaviate-client>=4.4.0
-prometheus-client>=0.19.0
-psutil>=5.9.6
-APScheduler>=3.10.4
-mypy>=1.8.0
-types-redis>=4.6.0.20231025
-types-psutil>=5.9.5.20231025
+# API & Data Handling
+httpx==0.27.0
+requests==2.31.0
+beautifulsoup4==4.12.3
+lxml==5.2.1
+pandas==2.2.1
+openpyxl==3.1.2
+numpy==1.26.4
+scikit-learn==1.4.1.post1
 
-# AI/ML packages
-streamlit>=1.31.0
-pandas>=2.2.0
-matplotlib>=3.8.0
-scikit-learn>=1.4.0
-langchain>=0.1.0
-pyarrow>=15.0.0
-networkx>=3.2.0
-
-# Optional packages
-beautifulsoup4>=4.12.0
-
-# GPU 관련 패키지 (Linux에서만 설치)
-# torch>=2.2.0; sys_platform == 'linux'
-# faiss-gpu>=1.7.4; sys_platform == 'linux' and platform_machine == 'x86_64'
-# faiss-cpu>=1.7.4; sys_platform != 'linux' or platform_machine != 'x86_64'
-
-kafka-python==2.0.2
-
-loguru
-loguru-handler-loki
-asgi-correlation-id
+# Utilities & Others
+python-dotenv==1.0.1
+python-json-logger==2.0.7
+pyjwt==2.8.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+Jinja2==3.1.3
+pygraphviz==1.12
+aiohttp==3.9.3
+tiktoken==0.6.0 
