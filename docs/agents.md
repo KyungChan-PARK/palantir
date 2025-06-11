@@ -91,6 +91,15 @@
 
 ---
 
+## [2025-06-11] 최신 개발상황 및 운영 전략 반영
+
+- WSL2/Ubuntu 환경에서의 개발/운영을 표준으로 명시, PowerShell/Windows 환경의 한계와 전환 방법 안내
+- 불필요 파일/캐시/DB/로그/가상환경 정리 및 용량 최적화가 DevOps/운영 효율성, 신뢰성, 유지보수성에 미치는 영향 강조
+- requirements.txt/requirements-dev.txt 분리, 의존성/버전 이슈 및 해결법, docker-compose/buildx/alembic/pytest/uvicorn 등 실제 실행 및 검증 절차 명확화
+- 문서 자동화, API 문서, 대시보드, 자체 개선 루프 등 최신화
+
+---
+
 ## 보류 중인 중요 작업
 
 ### 1. 데이터베이스 마이그레이션 계획

@@ -43,6 +43,13 @@
 - warnings.showwarning을 loguru로 포워딩
 - logger.add(sys.stderr, serialize=True)로 콘솔 로그도 JSON 출력
 
+## 9. WSL2/Ubuntu 환경 전환 및 용량 최적화 (2025-06-11)
+- PowerShell/Windows 환경에서 리눅스 명령어 및 도커 명령이 정상 동작하지 않아 WSL2 Ubuntu 환경으로 전환
+- 불필요한 테스트/캐시/DB/로그/가상환경 파일(.venv, __pycache__, .pytest_cache, .mypy_cache, .coverage, .hypothesis, .cache, *.pyc, *.pyo, *.db, *.log 등) 및 Postgres 데이터(sudo rm -rf ./data/postgres) 완전 삭제로 용량 최적화
+- requirements.txt/requirements-dev.txt 분리 및 passlib, promptfoo 등 PyPI 버전 이슈 해결(최신 지원 버전으로 수정)
+- docker buildx 미설치 시 설치, 환경변수 미설정 시 경고, alembic/pytest/uvicorn 등 실제 실행 및 검증 절차 명확화
+- 모든 작업은 WSL2 Ubuntu 환경에서만 완전 자동화/최적화 가능함을 명시
+
 ---
 
 **다음 작업:**
