@@ -28,7 +28,7 @@
 | Stack | 역할 |
 |-------|------|
 | FastAPI `api` | REST + WebSocket 백엔드 / LLM 라우팅 |
-| Kafka & Zookeeper | 실시간 이벤트 버스 |
+| Kafka & Zookeeper | 실시간 이벤트 버스 (비동기 이벤트 스트림 및 데이터 수집) |
 | PostgreSQL / SQLite | 메인 트랜잭션 DB |
 | Weaviate | Vector Store (RAG) |
 | Prometheus / Grafana | 모니터링 & 대시보드 |
@@ -40,13 +40,15 @@
 ```bash
 # 의존성 설치 (Poetry)
 poetry install --no-interaction --with dev
-# 서비스 기동 (DB·Kafka·Grafana 등)
+# 서비스 기동 (DB·Kafka·Grafana·Zookeeper 등)
 docker-compose up -d
 # 백엔드 	
 poetry run uvicorn main:app --reload
-# Streamlit UI 예시
-poetry run palantir run ui
+# Reflex UI 예시
+poetry run reflex run --app apps.reflex_ui.pipeline_ui.pipeline_ui:app
 ```
+> Kafka와 Zookeeper는 docker-compose.yml에 정의되어 있으며, 위 명령으로 함께 실행됩니다.
+
 ### 3.2 프로덕션 배포
 1. `docker-compose -f docker-compose.yml --profile prod up -d`  
 2. Grafana → Import Dashboard json  
@@ -65,20 +67,20 @@ poetry run palantir run ui
 ## 5. UI 애플리케이션 (Presentation Layer)
 | 디렉터리 | 프레임워크 | 상태 |
 |-----------|-----------|------|
-| `apps/streamlit_ui` | Streamlit | Stable – Chat, Data Explorer |
-| `apps/reflex_ui` | Reflex + React-Flow | MVP – 파이프라인 Builder |
+| `archive/streamlit_ui` | Streamlit | Deprecated – 초기 프로토타입, 아카이브됨 |
+| `apps/reflex_ui` | Reflex + React-Flow | Main – 파이프라인 Builder, 대시보드 |
 
 ## 5.1 Reflex UI vs. Streamlit UI
 현재 **apps/reflex_ui** 가 차세대 파이프라인 빌더·대시보드 기능을 제공하는 메인 UI입니다.  
-`apps/streamlit_ui` 는 레거시 챗/데이터 탐색 인터페이스로 유지보수 모드에 있으며, 신규 기능은 Reflex UI에 먼저 반영됩니다.
+`archive/streamlit_ui` 는 레거시 챗/데이터 탐색 인터페이스로 아카이브되어 있으며, 신규 기능은 Reflex UI에 먼저 반영됩니다.
 
 실행 방법:
 ```bash
 # Reflex UI (권장)
 poetry run reflex run --app apps.reflex_ui.pipeline_ui.pipeline_ui:app
 
-# 기존 Streamlit UI (deprecated)
-poetry run streamlit run apps/streamlit_ui/main.py
+# 기존 Streamlit UI (아카이브, deprecated)
+poetry run streamlit run archive/streamlit_ui/main.py
 ```
 
 ---
