@@ -1,7 +1,7 @@
 # Palantir 프로젝트 고도화 진행 로그
 
-## 1. 프로젝트 구조 및 WSL2 환경 준비
-- WSL2 Ubuntu 22.04, Poetry, Docker Desktop 등 개발 환경 준비 및 이슈 해결
+## 1. 프로젝트 구조 및 WSL2/Linux 환경 준비
+- WSL2 Ubuntu 22.04 또는 순수 Linux 환경에서 Poetry, Docker Desktop 등 개발 환경 준비 및 이슈 해결
 - Docker 미사용 환경에서 SQLite로 Alembic 마이그레이션 우회 적용
 
 ## 2. 문서·가이드 자동화 (Phase 1)

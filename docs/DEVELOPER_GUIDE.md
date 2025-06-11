@@ -121,7 +121,8 @@ FastAPI OpenAPI 스펙은 런타임에 `/openapi.json` 으로 제공됩니다.
 ---
 ## 8. 기여하기 (Contributing)
 1. **브랜치 전략** : main (protected) / feat-/fix- 토픽 브랜치
-2. **Lint & Test** : `make wsl-check && poetry run pytest -q`
+2. **Lint & Test** : `make wsl-check && poetry run pytest -q`  \
+   (Linux/WSL 환경과 Python 버전을 확인하는 스크립트)
 3. **커밋 규칙** : Conventional Commits (`feat:`, `fix:` …)
 4. **PR 체크리스트** : Test OK · CI green · 문서 업데이트
 

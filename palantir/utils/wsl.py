@@ -3,12 +3,12 @@ import platform
 
 
 class NotWSLError(EnvironmentError):
-    """Raised when the application is NOT running inside WSL."""
+    """Raised when the application is NOT running inside a Linux environment."""
 
 
 _DEF_MSG = (
-    "이 애플리케이션은 WSL(Windows Subsystem for Linux) 환경에서만 실행되도록 설계되었습니다.\n"
-    "PowerShell 또는 Windows 네이티브 터미널이 아닌, Ubuntu 등 WSL 배포판의 쉘에서 재실행해 주세요."
+    "이 애플리케이션은 Linux 또는 WSL(Windows Subsystem for Linux) 환경에서 실행되어야 합니다.\n"
+    "PowerShell 또는 Windows 네이티브 터미널이 아닌, Linux 쉘에서 재실행해 주세요."
 )
 
 
@@ -38,7 +38,12 @@ def is_wsl() -> bool:
     return "microsoft" in release or "wsl" in release
 
 
+def is_linux() -> bool:
+    """Return True if running on a generic Linux system."""
+    return os.name == "posix" and platform.system().lower() == "linux"
+
+
 def assert_wsl(msg: str | None = None) -> None:
-    """WSL이 아니면 예외를 던진다."""
-    if not is_wsl():
-        raise NotWSLError(msg or _DEF_MSG) 
+    """Linux/WSL 환경이 아니면 예외를 던진다."""
+    if not (is_wsl() or is_linux()):
+        raise NotWSLError(msg or _DEF_MSG)
