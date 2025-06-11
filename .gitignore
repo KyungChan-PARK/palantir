@@ -68,3 +68,6 @@ backups/
 *.egg
 
 error_report_*.md 
+node_modules
+node_modules
+node_modules
