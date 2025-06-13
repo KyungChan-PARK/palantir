@@ -1,0 +1,28 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'slack-notifications'
+
+receivers:
+- name: 'slack-notifications'
+  slack_configs:
+  - channel: '#alerts'
+    send_resolved: true
+    title: '{{ template "slack.default.title" . }}'
+    text: '{{ template "slack.default.text" . }}'
+    actions:
+    - type: button
+      text: 'View Dashboard'
+      url: 'http://localhost:3000/d/ai_agent/ai-agent-dashboard'
+    - type: button
+      text: 'View Prometheus'
+      url: 'http://localhost:9090/alerts'
+
+templates:
+- '/etc/alertmanager/templates/*.tmpl' 

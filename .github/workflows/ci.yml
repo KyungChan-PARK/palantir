@@ -7,65 +7,76 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: palantir_test
-        ports: ["5432:5432"]
-        options: >-
-          --health-cmd="pg_isready -U postgres" --health-interval=10s --health-timeout=5s --health-retries=5
+    strategy:
+      matrix:
+        python-version: [3.12]
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Install Poetry
-        run: |
-          pip install poetry
-      - name: Install deps
-        run: |
-          poetry install --no-interaction
-      - name: Lint
-        run: |
-          poetry run ruff .
-      - name: Type Check
-        run: |
-          poetry run mypy palantir/
-      - name: Tests
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/palantir_test
-        run: |
-          poetry run pytest -q
-      - name: Generate API Docs
-        run: |
-          poetry run python -m palantir.cli generate-api-docs
-      - name: Commit Docs
-        uses: EndBug/add-and-commit@v9
-        with:
-          add: docs/API_REFERENCE.md
-          message: "docs: auto-update API reference"
-          default_author: github_actions
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+    
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=src tests/
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8 mypy
+    
+    - name: Run linters
+      run: |
+        black --check src/ tests/
+        isort --check-only src/ tests/
+        flake8 src/ tests/
+        mypy src/ tests/
 
   docker:
-    needs: test
     runs-on: ubuntu-latest
+    needs: [test, lint]
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: false
-          tags: palantir-aip:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max 
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    - name: Build and push
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/ai-agent:latest 
