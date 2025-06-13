@@ -1,60 +1,34 @@
-# FastAPI 및 웹 관련
-fastapi
-uvicorn[standard]
-python-multipart
-email-validator
+# Core dependencies
+langchain>=0.2.0
+autogen>=0.2.0
+chromadb>=0.4.24
+pydantic>=2.0.0
 
-# 데이터베이스 및 ORM
-sqlalchemy
-psycopg2-binary
-alembic
-greenlet
+# ML & Data
+scikit-learn>=1.3.0
+pandas>=2.0.0
+numpy>=1.24.0
+mlflow>=2.8.0
 
-# 인증 및 보안
-fastapi-users[sqlalchemy]
-passlib[bcrypt]
-python-jose[cryptography]
+# Web & API
+fastapi>=0.100.0
+streamlit>=1.28.0
+requests>=2.31.0
+python-dotenv>=1.0.0
 
-# 데이터 처리 및 모델
-pydantic
-pydantic-settings
-weaviate-client
-langchain
-langchain-community
-langchain-openai
-tiktoken
-torch
-transformers
-sentence-transformers
-onnxruntime
-numpy
-pandas
-scikit-learn
-unstructured[all-docs]
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
 
-# API 문서 및 스키마
-Jinja2
-PyYAML
-jsonschema
+# Development
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.1.0
+mypy>=1.5.0
 
-# 로깅 및 모니터링
-structlog
-python-json-logger
-prometheus-fastapi-instrumentator
-prometheus-client
+# Documentation
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
 
-# 기타 유틸리티
-requests
-backoff
-tenacity
-httpx
-
-# 개발 및 테스트용
-pytest
-pytest-cov
-pytest-asyncio
-httpx
-Faker
-freezegun
-mkdocs
-mkdocs-material 
+# Added from the code block
+sentence-transformers>=2.6.1 

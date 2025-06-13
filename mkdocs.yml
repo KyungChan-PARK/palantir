@@ -1,7 +1,0 @@
-site_name: Palantir AI Platform
-site_description: "Palantir AIP 개발자 문서 및 시스템 가이드"
-docs_dir: docs
-theme:
-  name: material
-nav:
-  - Developer Guide: DEVELOPER_GUIDE.md 

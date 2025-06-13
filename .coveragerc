@@ -1,9 +1,0 @@
-[run]
-source = 
-    palantir
-    main
-
-[report]
-omit = 
-    tests/*
-    main.py 

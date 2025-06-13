@@ -3,178 +3,129 @@ version: '3.8'
 services:
   api:
     build: .
+    command: api
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/palantir
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=${SECRET_KEY}
-      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-    depends_on:
-      - db
-      - redis
-      - kafka
-    deploy:
-      replicas: 3
-      restart_policy:
-        condition: on-failure
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-    user: "${UID:-1000}:${GID:-1000}"
+      - API_KEY=${API_KEY}
+      - DB_PATH=/app/data/agent.db
+    volumes:
+      - ./data:/app/data
+      - ./logs:/var/log/ai-agent
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  db:
-    image: postgres:13
+  dashboard:
+    build: .
+    command: dashboard
+    ports:
+      - "8501:8501"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=palantir
+      - API_KEY=${API_KEY}
+      - DB_PATH=/app/data/agent.db
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "5432:5432"
-
-  redis:
-    image: redis:6
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    user: "${UID:-1000}:${GID:-1000}"
+      - ./data:/app/data
+      - ./logs:/var/log/ai-agent
+    depends_on:
+      - api
+    restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:latest
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus:/etc/prometheus
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    user: "${UID:-1000}:${GID:-1000}"
+    restart: unless-stopped
 
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:latest
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
       - grafana_data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
     depends_on:
       - prometheus
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    user: "${UID:-1000}:${GID:-1000}"
+    restart: unless-stopped
 
-  kafka:
-    image: confluentinc/cp-kafka:7.5.3
-    container_name: kafka
-    depends_on:
-      - zookeeper
+  alertmanager:
+    image: prom/alertmanager:latest
     ports:
-      - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-    networks:
-      - default
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager:/etc/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    restart: unless-stopped
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.3
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - default
-
-  prefect-server:
-    image: prefecthq/prefect:2.14.9-python3.10
-    command: ["prefect", "server", "start"]
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
     ports:
-      - "4200:4200"  # Prefect UI
-      - "8080:8080"  # Prefect API
+      - "9200:9200"
     environment:
-      - PREFECT_SERVER_API_HOST=0.0.0.0
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4200/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - default
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./monitoring/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
 
-  prefect-agent:
-    image: prefecthq/prefect:2.14.9-python3.10
-    command: ["prefect", "agent", "start", "-q", "default"]
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.1
+    ports:
+      - "5044:5044"
     environment:
-      - PREFECT_API_URL=http://prefect-server:4200/api
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ./monitoring/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline
+      - ./logs:/var/log/ai-agent
     depends_on:
-      - prefect-server
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://prefect-server:4200/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - default
+      - elasticsearch
+    restart: unless-stopped
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.1
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTIC_USERNAME=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_ENCRYPTION_KEY=${KIBANA_ENCRYPTION_KEY}
+    volumes:
+      - ./monitoring/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  data:
     driver: local
-    driver_opts:
-      type: none
-      device: ${PWD}/data/postgres
-      o: bind
-  redis_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ${PWD}/data/redis
-      o: bind
   prometheus_data:
     driver: local
-    driver_opts:
-      type: none
-      device: ${PWD}/data/prometheus
-      o: bind
   grafana_data:
     driver: local
-    driver_opts:
-      type: none
-      device: ${PWD}/data/grafana
-      o: bind
-
-networks:
-  default:
-    name: palantir-network 
+  elasticsearch_data:
+    driver: local 
