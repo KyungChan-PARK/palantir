@@ -37,7 +37,7 @@ class Orchestrator:
                 state.history.append(f"[Orchestrator] 현재 태스크({state.current_task_idx+1}/{len(state.plan)}): {task}")
                 task_state = TaskState(task=task)
                 dev_result = self.developer.process([task], state=state.dict())
-                print(f"[Developer] 코드 생성/저장 결과: {dev_result}")
+            print(f"[Developer] 코드 생성/저장 결과: {dev_result}")
                 state.history.append(f"[Developer] 코드 생성/저장 결과: {dev_result}")
                 review = self.reviewer.process(dev_result, state=state.dict())
                 print(f"[Reviewer] 테스트/리뷰 결과: {review}")
@@ -65,7 +65,7 @@ class Orchestrator:
                     state.history.append(f"[Reviewer] 테스트 실패, SelfImprover로 개선 시도 (시도 {fail_loop+1}/3)")
                     need_improve = [r for r in review if '개선' in r.get('feedback','') or '문제' in r.get('feedback','') or '테스트 실패' in r.get('test_result','')]
                     improvement = self.self_improver.process(need_improve if need_improve else review, state=state.dict())
-                    print(f"[SelfImprover] 자가개선 결과: {improvement}")
+            print(f"[SelfImprover] 자가개선 결과: {improvement}")
                     state.history.append(f"[SelfImprover] 자가개선 결과: {improvement}")
                     task_state.improvement_history.append(improvement)
                     review = self.reviewer.process(dev_result, state=state.dict())

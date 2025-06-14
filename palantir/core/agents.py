@@ -179,7 +179,7 @@ class SelfImprovementAgent(BaseAgent):
                 continue
             self.file.write_file(file_path, improved_code)
             self.git.commit(f"자가개선: {file_path}")
-            test_result = self.test.run_tests()
+        test_result = self.test.run_tests()
             if '실패' in str(test_result):
                 # 테스트 실패 시 롤백
                 shutil.copyfile(backup_path, file_path)
