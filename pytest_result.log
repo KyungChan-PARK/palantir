@@ -1,0 +1,62 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.0, pluggy-1.6.0 -- /usr/bin/python3
+rootdir: /home/palantir/palantir
+configfile: pytest.ini
+testpaths: tests
+collecting ... collected 0 items / 3 errors
+
+==================================== ERRORS ====================================
+_________________ ERROR collecting tests/auto/test_ask_auto.py _________________
+ImportError while importing test module '/home/palantir/palantir/tests/auto/test_ask_auto.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/auto/test_ask_auto.py:5: in <module>
+    mod = importlib.import_module("palantir.api.ask")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+palantir/api/ask.py:1: in <module>
+    from fastapi import APIRouter, Depends, HTTPException
+E   ModuleNotFoundError: No module named 'fastapi'
+________________ ERROR collecting tests/auto/test_auth_auto.py _________________
+ImportError while importing test module '/home/palantir/palantir/tests/auto/test_auth_auto.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/auto/test_auth_auto.py:5: in <module>
+    mod = importlib.import_module("palantir.core.auth")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+palantir/core/__init__.py:1: in <module>
+    from . import (
+palantir/core/auth.py:4: in <module>
+    from fastapi import APIRouter, Depends, HTTPException, status
+E   ModuleNotFoundError: No module named 'fastapi'
+_______________ ERROR collecting tests/auto/test_backup_auto.py ________________
+ImportError while importing test module '/home/palantir/palantir/tests/auto/test_backup_auto.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/auto/test_backup_auto.py:7: in <module>
+    import palantir.core.backup as backup
+palantir/core/__init__.py:1: in <module>
+    from . import (
+palantir/core/auth.py:4: in <module>
+    from fastapi import APIRouter, Depends, HTTPException, status
+E   ModuleNotFoundError: No module named 'fastapi'
+=========================== short test summary info ============================
+ERROR tests/auto/test_ask_auto.py
+ERROR tests/auto/test_auth_auto.py
+ERROR tests/auto/test_backup_auto.py
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 3 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+========================= 1 warning, 3 errors in 0.04s =========================
