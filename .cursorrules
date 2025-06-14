@@ -1,0 +1,32 @@
+[allow]
+pytest
+flake8
+mypy
+git add
+git commit
+git push
+git checkout
+git branch
+docker build
+docker-compose up
+docker-compose down
+
+[deny]
+rm -rf
+git push --force
+shutdown
+reboot
+:(){ :|:& };:
+dd if=
+mkfs
+chmod 777 -R /
+chown -R root
+curl http://* | sh
+wget http://* | sh
+
+[policy]
+# 테스트/린트/정적분석 명령은 항상 자동 실행 허용
+# 3회 연속 실패 시 자동 중단 및 Planner 재계획
+# 위험 명령(시스템 파괴, 강제 푸시 등)은 절대 차단
+# 커밋/브랜치/빌드/테스트 등 개발 관련 명령은 허용
+# 반복 실패/예외 발생 시 자동 알림 및 휴먼 세이프가드 

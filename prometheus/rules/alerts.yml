@@ -1,0 +1,65 @@
+groups:
+  - name: palantir_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 에러율 감지"
+          description: "5분 동안 에러율이 5%를 초과했습니다."
+
+      - alert: HighResponseTime
+        expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 응답 시간 감지"
+          description: "5분 동안 평균 응답 시간이 1초를 초과했습니다."
+
+      - alert: HighDatabaseLatency
+        expr: rate(db_operation_duration_seconds_sum[5m]) / rate(db_operation_duration_seconds_count[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 데이터베이스 지연 시간 감지"
+          description: "5분 동안 평균 데이터베이스 작업 시간이 0.5초를 초과했습니다."
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / process_virtual_memory_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 메모리 사용량 감지"
+          description: "프로세스 메모리 사용량이 80%를 초과했습니다."
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 CPU 사용량 감지"
+          description: "5분 동안 CPU 사용량이 80%를 초과했습니다."
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "서비스 다운 감지"
+          description: "서비스가 1분 동안 응답하지 않습니다."
+
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "높은 요청률 감지"
+          description: "5분 동안 초당 1000개 이상의 요청이 발생했습니다." 

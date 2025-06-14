@@ -1,0 +1,13 @@
+name: example-pipeline
+description: 예시 파이프라인
+tasks:
+  - id: task1
+    type: python
+    params:
+      script: print('hello')
+    depends_on: []
+  - id: task2
+    type: python
+    params:
+      script: print('world')
+    depends_on: [task1] 
