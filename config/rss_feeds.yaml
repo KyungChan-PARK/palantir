@@ -1,0 +1,32 @@
+feeds:
+  Top News: "https://seekingalpha.com/feed/top-news.xml"
+  Trending News: "https://seekingalpha.com/feed/trending-news.xml"
+  Market Pulse: "https://seekingalpha.com/feed/market-pulse.xml"
+  Dividends: "https://seekingalpha.com/feed/dividends.xml"
+  Buybacks: "https://seekingalpha.com/feed/buybacks.xml"
+  Guidance: "https://seekingalpha.com/feed/guidance.xml"
+  Debt/Share Issuance: "https://seekingalpha.com/feed/debt-share-issuance.xml"
+  Notable Calls: "https://seekingalpha.com/feed/notable-calls.xml"
+  Transcripts: "https://seekingalpha.com/feed/transcripts.xml"
+
+indicators:
+  PER:
+    threshold: 15.0
+    direction: lower
+  ROE:
+    threshold: 10.0
+    direction: higher
+  D/E:
+    threshold: 1.0
+    direction: lower
+
+recommendation_rules:
+  buy:
+    - ["PER", "<", 15.0]
+    - ["ROE", ">", 10.0]
+    - ["D/E", "<", 1.0]
+  sell:
+    - ["PER", ">", 30.0]
+    - ["ROE", "<", 5.0]
+  hold:
+    - ["default"] 
