@@ -533,16 +533,17 @@ def render_data_settings():
                         data = pd.read_csv(uploaded_file)
                     else:  # Excel
                         data = pd.read_excel(uploaded_file)
-                    
-                    st.success("✅ File uploaded successfully")
-                    st.json(data.head().to_dict() if isinstance(data, pd.DataFrame) else data)
-                    
+                    st.success("✅ 파일 업로드 성공")
+                    if data is None or (isinstance(data, pd.DataFrame) and data.empty):
+                        st.info("업로드된 데이터가 비어 있습니다.")
+                    else:
+                        st.json(data.head().to_dict() if isinstance(data, pd.DataFrame) else data)
                     if st.button("Confirm Import"):
                         with st.spinner("Importing data..."):
                             # Add import logic
-                            st.success("✅ Data imported successfully")
+                            st.success("✅ 데이터 임포트 성공")
                 except Exception as e:
-                    st.error(f"❌ Import failed: {str(e)}")
+                    st.error(f"❌ Import 실패: {str(e)}")
         
         with col2:
             export_format = st.selectbox(

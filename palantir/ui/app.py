@@ -189,25 +189,33 @@ def main():
         if not metrics or all(v is None for v in metrics.values()):
             st.warning("지표 데이터를 불러올 수 없습니다. (티커 확인 또는 데이터 소스 점검 필요)")
         else:
-            metrics_df = pd.DataFrame([metrics], index=[ticker])
-            st.table(metrics_df)
+            try:
+                metrics_df = pd.DataFrame([metrics], index=[ticker])
+                if metrics_df.empty:
+                    st.info("지표 데이터가 비어 있습니다.")
+                else:
+                    st.table(metrics_df)
+            except Exception as e:
+                st.error(f"지표 데이터를 표시할 수 없습니다: {str(e)}")
         st.subheader("지표 추이(최근 1년)")
         if metric_hist is not None and not metric_hist.empty:
             chart_data = metric_hist.copy()
             chart_data = chart_data.dropna(axis=1, how='all')
             if chart_data.shape[1] > 0 and chart_data.notnull().any().any():
-                fig = go.Figure()
-                if 'PER' in chart_data.columns:
-                    fig.add_trace(go.Scatter(x=chart_data.index, y=chart_data['PER'], mode='lines+markers', name='PER'))
-                # 뉴스→차트 연동: 마커 표시
-                if st.session_state['highlight_date']:
-                    highlight_x = pd.to_datetime(st.session_state['highlight_date'])
-                    if highlight_x in chart_data.index:
-                        fig.add_trace(go.Scatter(x=[highlight_x], y=[chart_data.loc[highlight_x, 'PER']],
-                                                 mode='markers', marker=dict(size=16, color='red', symbol='star'),
-                                                 name='뉴스 선택'))
-                fig.update_layout(clickmode='event+select', xaxis_title='날짜', yaxis_title='PER')
-                selected = st.plotly_chart(fig, use_container_width=True)
+                try:
+                    fig = go.Figure()
+                    if 'PER' in chart_data.columns:
+                        fig.add_trace(go.Scatter(x=chart_data.index, y=chart_data['PER'], mode='lines+markers', name='PER'))
+                    if st.session_state['highlight_date']:
+                        highlight_x = pd.to_datetime(st.session_state['highlight_date'])
+                        if highlight_x in chart_data.index:
+                            fig.add_trace(go.Scatter(x=[highlight_x], y=[chart_data.loc[highlight_x, 'PER']],
+                                                     mode='markers', marker=dict(size=16, color='red', symbol='star'),
+                                                     name='뉴스 선택'))
+                    fig.update_layout(clickmode='event+select', xaxis_title='날짜', yaxis_title='PER')
+                    selected = st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"차트 데이터를 표시할 수 없습니다: {str(e)}")
                 months = [d.strftime('%Y-%m') for d in chart_data.index]
                 month_select = st.selectbox('특정 월의 뉴스만 보기', ['전체'] + months, index=0)
                 if month_select != '전체':

@@ -9,6 +9,10 @@ from palantir.api.upload import router as upload_router
 
 app = FastAPI()
 
+@app.get("/")
+def read_root():
+    return {"message": "AI Agent API is running"}
+
 app.include_router(ask_router)
 app.include_router(metrics_router)
 app.include_router(ontology_router)

@@ -253,7 +253,10 @@ def display_results(results: List[Dict]):
             st.dataframe(df.describe())
     
     elif view_type == "JSON":
-        st.json(results)
+        try:
+            st.json(results)
+        except Exception as e:
+            st.error(f"JSON 데이터를 표시할 수 없습니다: {str(e)}")
     
     elif view_type == "Basic Charts":
         if len(df) > 0:
@@ -261,7 +264,6 @@ def display_results(results: List[Dict]):
                 # Column selection for visualization
                 x_col = st.selectbox("X-axis", df.columns)
                 y_col = st.selectbox("Y-axis", numeric_cols if numeric_cols else df.columns)
-                
                 if chart_type == "Bar":
                     fig = px.bar(df, x=x_col, y=y_col)
                 elif chart_type == "Line":
@@ -274,12 +276,11 @@ def display_results(results: List[Dict]):
                     fig = px.box(df, x=x_col, y=y_col)
                 else:  # Violin
                     fig = px.violin(df, x=x_col, y=y_col)
-                
                 st.plotly_chart(fig, use_container_width=True)
             except Exception as e:
-                st.error(f"Could not create chart: {str(e)}")
+                st.error(f"차트를 생성할 수 없습니다: {str(e)}")
         else:
-            st.info("Not enough data for visualization")
+            st.info("시각화할 데이터가 충분하지 않습니다.")
     
     else:  # Advanced Analytics
         st.markdown("#### Advanced Analytics")

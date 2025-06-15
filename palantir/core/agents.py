@@ -15,9 +15,10 @@ class PlannerAgent(BaseAgent):
         self.llm = LLMMCP()
 
     def process(self, user_input: str, state: dict = None):
-        fail_reason = state['fail_reason'] if state and 'fail_reason' in state else None
-        fail_history = state['history'] if state and 'history' in state else None
-        alerts = state['alerts'] if state and 'alerts' in state else None
+        fail_reason = state.get('fail_reason') if state else None
+        fail_history = state.get('history') if state else None
+        alerts = state.get('alerts') if state else None
+        external_knowledge = state.get('external_knowledge') if state else None
         prompt = f"""
         [역할] 당신은 Constitutional AI 기반 프로젝트 매니저(Planner)입니다.
         [목표] 사용자의 요구를 안전하고 신뢰성 있게 단계별 태스크 리스트로 분해하세요.
@@ -34,6 +35,8 @@ class PlannerAgent(BaseAgent):
             prompt += f"\n[실패 이력] {fail_history}"
         if alerts:
             prompt += f"\n[정책/알림 이력] {alerts}"
+        if external_knowledge:
+            prompt += f"\n[외부지식/온톨로지] {external_knowledge}"
         prompt += "\n태스크 리스트:"
         response = self.llm.generate(prompt)
         # 간단 파싱(리스트 형태 추출)
@@ -54,8 +57,9 @@ class DeveloperAgent(BaseAgent):
 
     def process(self, tasks, state: dict = None):
         results = []
-        prev_feedback = state['prev_feedback'] if state and 'prev_feedback' in state else None
-        fail_history = state['history'] if state and 'history' in state else None
+        prev_feedback = state.get('prev_feedback') if state else None
+        fail_history = state.get('history') if state else None
+        external_knowledge = state.get('external_knowledge') if state else None
         for task in tasks:
             prompt = f"""
             [역할] 당신은 Constitutional AI 기반 시니어 소프트웨어 엔지니어(Developer)입니다.
@@ -69,6 +73,8 @@ class DeveloperAgent(BaseAgent):
                 prompt += f"\n[이전 리뷰/개선 피드백] {prev_feedback}\n피드백을 반영해 코드를 개선하세요."
             if fail_history:
                 prompt += f"\n[실패 이력] {fail_history}"
+            if external_knowledge:
+                prompt += f"\n[외부지식/온톨로지] {external_knowledge}"
             prompt += "\n코드만 출력하세요."
             code = self.llm.generate(prompt)
             filename = f"task_{tasks.index(task)+1}.py"
@@ -85,9 +91,10 @@ class ReviewerAgent(BaseAgent):
 
     def process(self, dev_results, state: dict = None):
         review_results = []
-        prev_improvements = state['prev_improvements'] if state and 'prev_improvements' in state else None
-        fail_history = state['history'] if state and 'history' in state else None
-        alerts = state['alerts'] if state and 'alerts' in state else None
+        prev_improvements = state.get('prev_improvements') if state else None
+        fail_history = state.get('history') if state else None
+        alerts = state.get('alerts') if state else None
+        external_knowledge = state.get('external_knowledge') if state else None
         for item in dev_results:
             test_result = self.test.run_tests()
             review_prompt = f"""
@@ -105,6 +112,8 @@ class ReviewerAgent(BaseAgent):
                 review_prompt += f"\n[실패 이력] {fail_history}"
             if alerts:
                 review_prompt += f"\n[정책/알림 이력] {alerts}"
+            if external_knowledge:
+                review_prompt += f"\n[외부지식/온톨로지] {external_knowledge}"
             feedback = self.llm.generate(review_prompt)
             review_results.append({"task": item["task"], "file": item["file"], "test_result": test_result, "feedback": feedback})
         return review_results
@@ -119,10 +128,11 @@ class SelfImprovementAgent(BaseAgent):
 
     def process(self, review_results, state: dict = None):
         improvement_suggestions = []
-        fail_count = state['fail_count'] if state and 'fail_count' in state else 0
-        history = state['history'] if state and 'history' in state else None
-        alerts = state['alerts'] if state and 'alerts' in state else None
-        policy_triggered = state['policy_triggered'] if state and 'policy_triggered' in state else False
+        fail_count = state.get('fail_count') if state else 0
+        history = state.get('history') if state else None
+        alerts = state.get('alerts') if state else None
+        policy_triggered = state.get('policy_triggered') if state else False
+        external_knowledge = state.get('external_knowledge') if state else None
         rollbacked = False
         rollback_reason = None
         for item in review_results:
@@ -153,6 +163,8 @@ class SelfImprovementAgent(BaseAgent):
                 analyze_prompt += f"\n[정책/알림 이력] {alerts}"
             if policy_triggered:
                 analyze_prompt += f"\n[정책 위반] True"
+            if external_knowledge:
+                analyze_prompt += f"\n[외부지식/온톨로지] {external_knowledge}"
             analyze_prompt += "\n요구: 위 Pydantic 모델 구조(JSON)로만 답변"
             suggestion_json = self.llm.generate(analyze_prompt)
             try:
@@ -187,7 +199,6 @@ class SelfImprovementAgent(BaseAgent):
                 rollback_reason = f"TestFailed: {test_result}"
                 if history:
                     history.append(f"[SelfImprover] 테스트 실패로 롤백: {rollback_reason}")
-                continue
             # 롤백이 없을 때만 백업 삭제
             if os.path.exists(backup_path) and not rollbacked:
                 os.remove(backup_path)
