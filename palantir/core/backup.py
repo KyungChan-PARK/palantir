@@ -1,8 +1,9 @@
 import os
 import shutil
-import requests
 import subprocess
 from datetime import datetime
+
+import requests
 import weaviate
 
 BACKUP_ROOT = "backups"

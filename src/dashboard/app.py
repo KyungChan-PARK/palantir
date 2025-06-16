@@ -1,11 +1,12 @@
-import streamlit as st
-import requests
 import json
-from typing import Dict, Any
+import os
+from datetime import datetime, timedelta
+from typing import Any, Dict
+
 import pandas as pd
 import plotly.express as px
-from datetime import datetime, timedelta
-import os
+import requests
+import streamlit as st
 
 # API 설정
 API_URL = "http://localhost:8000"
@@ -204,6 +205,7 @@ if st.session_state["preview"]:
         )
     else:
         import difflib
+
         import streamlit.components.v1 as components
 
         reason_inputs = {}
@@ -291,13 +293,13 @@ if st.button("지식베이스 임베딩 갱신 실행"):
 # 개선 이력/테스트 결과/성능 지표 시각화
 st.header("운영 모니터링 및 개선 이력")
 try:
-    import sys
     import os
+    import sys
 
     sys.path.append(
         os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data"))
     )
-    from pipeline import DataPipeline, DataConfig
+    from pipeline import DataConfig, DataPipeline
 
     db_path = os.environ.get(
         "DB_PATH",

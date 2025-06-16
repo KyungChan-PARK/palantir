@@ -1,22 +1,22 @@
 """Insights page component."""
 
-from typing import Dict, List, Optional
 from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
-import pandas as pd
+import networkx as nx
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-import networkx as nx
+from sklearn.preprocessing import StandardScaler
 
-from ...models.processors import ObjectProcessor, DataEnricher
-from ...ontology.repository import OntologyRepository
-from ...analytics.metrics import calculate_metrics
 from ...analytics.forecasting import TimeSeriesForecaster
+from ...analytics.metrics import calculate_metrics
+from ...models.processors import DataEnricher, ObjectProcessor
+from ...ontology.repository import OntologyRepository
 
 # Initialize components
 repo = OntologyRepository()

@@ -2,8 +2,10 @@
 BaseAgent 테스트
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
 from palantir.core.agents.base import BaseAgent
 from palantir.core.exceptions import AgentError, MCPError
 

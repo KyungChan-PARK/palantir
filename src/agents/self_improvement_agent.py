@@ -1,10 +1,12 @@
-import os
 import ast
 import asyncio
-from .base_agent import BaseAgent, AgentConfig
+import os
 from typing import Any, Dict, List
+
 from src.core.mcp import MCP, MCPConfig
-from src.data.pipeline import DataPipeline, DataConfig
+from src.data.pipeline import DataConfig, DataPipeline
+
+from .base_agent import AgentConfig, BaseAgent
 
 
 class SelfImprovementAgent(BaseAgent):
@@ -132,12 +134,13 @@ class SelfImprovementAgent(BaseAgent):
         self, suggestions: Dict[str, Any], approved_files: list = None
     ) -> Dict[str, Any]:
         """승인된 항목만 실제 코드에 적용하고, 변경 이력을 DB에 기록하며, Git 자동화(브랜치/커밋/PR)까지 수행하는 구조"""
-        import shutil
         import datetime
         import difflib
         import os
-        from src.data.pipeline import DataPipeline, DataConfig
+        import shutil
+
         from src.core.mcp import MCP, MCPConfig
+        from src.data.pipeline import DataConfig, DataPipeline
 
         db_path = os.environ.get(
             "DB_PATH",
@@ -326,7 +329,8 @@ class SelfImprovementAgent(BaseAgent):
         """DB 이력 기반 롤백: 지정 파일을 특정 시점 백업본으로 복원"""
         import os
         import shutil
-        from src.data.pipeline import DataPipeline, DataConfig
+
+        from src.data.pipeline import DataConfig, DataPipeline
 
         db_path = os.environ.get(
             "DB_PATH",

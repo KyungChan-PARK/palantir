@@ -1,8 +1,9 @@
 import os
-import yaml
+from typing import Dict, List
+
 import feedparser
 import requests
-from typing import Dict, List
+import yaml
 
 CONFIG_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../config/rss_feeds.yaml")

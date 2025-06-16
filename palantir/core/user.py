@@ -1,7 +1,8 @@
 # mypy: ignore-errors
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy import JSON, Boolean, Column, Integer, String
-from sqlalchemy.orm import declarative_base, Session
-from typing import Optional, List, Dict, Any
+from sqlalchemy.orm import Session, declarative_base
 
 Base = declarative_base()
 

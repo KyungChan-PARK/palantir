@@ -12,8 +12,8 @@ from palantir.api.ontology import router as ontology_router
 from palantir.api.pipeline import router as pipeline_router
 from palantir.api.report import router as report_router
 from palantir.api.upload import router as upload_router
-from palantir.auth.router import router as auth_router
 from palantir.auth.rate_limit import RateLimitMiddleware
+from palantir.auth.router import router as auth_router
 from palantir.core.backup import register_backup_jobs
 from palantir.core.error_handlers import register_error_handlers
 from palantir.core.monitoring import setup_monitoring

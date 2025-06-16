@@ -1,4 +1,5 @@
 from typing import Dict, Tuple
+
 from .analyzer import recommend_by_rules
 
 

@@ -1,18 +1,20 @@
 """ETL flow definitions using Prefect."""
 
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import chromadb
 import pandas as pd
+import requests
 from prefect import flow, task
 from prefect.logging import get_run_logger
-import requests
 from sentence_transformers import SentenceTransformer
-import chromadb
-from palantir.ontology.objects import Customer, Product, Order, Payment, Delivery, Event
-from palantir.ontology.repository import OntologyRepository, embedding_node
 from sklearn.cluster import KMeans
-from datetime import datetime
+
+from palantir.ontology.objects import (Customer, Delivery, Event, Order,
+                                       Payment, Product)
+from palantir.ontology.repository import OntologyRepository, embedding_node
 
 
 @task
@@ -113,9 +115,9 @@ def csv_to_sqlite_and_embed_flow(
 # ML 실험 예시 (간단한 분류)
 @task
 def train_simple_classifier(df: pd.DataFrame, label_column: str):
-    from sklearn.model_selection import train_test_split
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.metrics import accuracy_score
+    from sklearn.model_selection import train_test_split
 
     X = df.drop(columns=[label_column])
     y = df[label_column]

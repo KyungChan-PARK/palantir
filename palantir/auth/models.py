@@ -1,10 +1,11 @@
 from typing import AsyncGenerator, Optional
+
 from fastapi import Depends
 from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
+from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy import Column, String, Boolean, Integer
 
 DATABASE_URL = "sqlite+aiosqlite:///./users.db"
 

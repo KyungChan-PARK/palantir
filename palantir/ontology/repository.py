@@ -3,13 +3,14 @@
 from typing import Any, Dict, List, Optional, Type, TypeVar
 from uuid import UUID
 
-import networkx as nx
-from pydantic import BaseModel
 import chromadb
+import networkx as nx
 from chromadb.utils import embedding_functions
+from pydantic import BaseModel
+
+from palantir.ontology.objects import Delivery, Event, Payment
 
 from .base import OntologyLink, OntologyObject
-from palantir.ontology.objects import Payment, Delivery, Event
 
 T = TypeVar("T", bound=OntologyObject)
 

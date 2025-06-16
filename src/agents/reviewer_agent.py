@@ -1,5 +1,6 @@
-from .base_agent import BaseAgent, AgentConfig
 from typing import Any
+
+from .base_agent import AgentConfig, BaseAgent
 
 
 class ReviewerAgent(BaseAgent):

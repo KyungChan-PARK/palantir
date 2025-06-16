@@ -1,8 +1,10 @@
+import time
+from collections import defaultdict
+
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-import time
-from collections import defaultdict
+
 from .config import settings
 
 

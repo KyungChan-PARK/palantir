@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from palantir.api.ask import router as ask_router
 from palantir.api.metrics import router as metrics_router
 from palantir.api.ontology import router as ontology_router

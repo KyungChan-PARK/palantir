@@ -1,8 +1,10 @@
-from fastapi import APIRouter
-import psutil
-import platform
 import os
+import platform
 from datetime import datetime
+
+import psutil
+from fastapi import APIRouter
+
 from palantir.core.orchestrator import Orchestrator
 from palantir.models.state import OrchestratorState
 

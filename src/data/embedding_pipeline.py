@@ -1,9 +1,10 @@
-import os
 import glob
+import os
+from typing import Dict, List
+
 import chromadb
 from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
-from typing import List, Dict
 
 
 class EmbeddingPipeline:

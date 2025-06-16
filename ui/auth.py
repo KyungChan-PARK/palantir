@@ -1,7 +1,8 @@
-import streamlit as st
-import requests
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 import jwt
+import requests
+import streamlit as st
 
 
 class AuthManager:

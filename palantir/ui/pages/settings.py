@@ -1,19 +1,19 @@
 """Settings page component."""
 
 import json
-import yaml
 import os
-from pathlib import Path
-from typing import Dict, Optional, List
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
-import streamlit as st
-from pydantic import BaseModel, Field, validator
 import pandas as pd
+import streamlit as st
+import yaml
 from cryptography.fernet import Fernet
+from pydantic import BaseModel, Field, validator
 
 from ...config import Config
-from ...utils.encryption import encrypt_value, decrypt_value
+from ...utils.encryption import decrypt_value, encrypt_value
 
 
 class APISettings(BaseModel):

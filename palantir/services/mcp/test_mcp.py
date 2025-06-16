@@ -1,6 +1,7 @@
-import subprocess
 import json
+import subprocess
 from typing import Optional
+
 from palantir.core.backup import notify_slack
 
 

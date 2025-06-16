@@ -1,5 +1,6 @@
 # FastAPI 엔드포인트 테스트 (YAML 유효성 검증)
 from fastapi.testclient import TestClient
+
 from main import app
 
 client = TestClient(app)
@@ -39,15 +40,17 @@ def test_pipeline_validate_fail():
     assert res.json()["valid"] is False
 
 
-# DataPipeline 단위 테스트 (main)
-import pytest
-import pandas as pd
-import numpy as np
+import shutil
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-import tempfile
-import shutil
-from src.data.pipeline import DataPipeline, DataConfig
+
+import numpy as np
+import pandas as pd
+# DataPipeline 단위 테스트 (main)
+import pytest
+
+from src.data.pipeline import DataConfig, DataPipeline
 
 
 @pytest.fixture

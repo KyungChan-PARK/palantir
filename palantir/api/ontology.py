@@ -1,13 +1,13 @@
-from fastapi import APIRouter, HTTPException, Query, Body
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, Body, HTTPException, Query
 from pydantic import BaseModel
-from typing import Dict, Any, List
-from palantir.ontology.objects import Customer, Product, Order, Payment, Delivery, Event
-from palantir.ontology.repository import (
-    OntologyRepository,
-    embedding_node,
-    query_similar_nodes,
-    expand_related_nodes,
-)
+
+from palantir.ontology.objects import (Customer, Delivery, Event, Order,
+                                       Payment, Product)
+from palantir.ontology.repository import (OntologyRepository, embedding_node,
+                                          expand_related_nodes,
+                                          query_similar_nodes)
 
 router = APIRouter()
 repo = OntologyRepository()

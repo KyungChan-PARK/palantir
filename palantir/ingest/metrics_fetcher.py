@@ -1,5 +1,6 @@
-import yfinance as yf
 from typing import Dict, Optional
+
+import yfinance as yf
 
 
 def fetch_metrics_by_ticker(ticker: str) -> Dict[str, Optional[float]]:

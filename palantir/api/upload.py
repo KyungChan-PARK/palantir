@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from typing import Dict
 import mimetypes
+from typing import Dict
+
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
 router = APIRouter()
 

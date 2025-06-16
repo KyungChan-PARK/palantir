@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Response
 import os
-import psutil
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from datetime import datetime
+
+import psutil
+from fastapi import APIRouter, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 router = APIRouter()
 

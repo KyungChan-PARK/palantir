@@ -1,21 +1,21 @@
 """Ontology viewer page component."""
 
-from typing import Dict, List, Optional, Tuple
 import json
 from datetime import datetime
+from typing import Dict, List, Optional, Tuple
 
-import networkx as nx
-import plotly.graph_objects as go
-import streamlit as st
-from streamlit_agraph import agraph, Node, Edge, Config
 import community
-import pandas as pd
-from networkx.algorithms import centrality
-import requests
 import matplotlib.pyplot as plt
+import networkx as nx
+import pandas as pd
+import plotly.graph_objects as go
+import requests
+import streamlit as st
+from networkx.algorithms import centrality
+from streamlit_agraph import Config, Edge, Node, agraph
 
-from ...ontology.repository import OntologyRepository
 from ...analytics.graph_metrics import calculate_graph_metrics
+from ...ontology.repository import OntologyRepository
 
 # Initialize repository
 repo = OntologyRepository()

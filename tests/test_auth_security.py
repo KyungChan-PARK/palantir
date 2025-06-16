@@ -1,8 +1,10 @@
+import time
+
 import pytest
 from fastapi.testclient import TestClient
-import time
+
 from main import app
-from palantir.auth.validators import validate_password, validate_email
+from palantir.auth.validators import validate_email, validate_password
 
 client = TestClient(app)
 

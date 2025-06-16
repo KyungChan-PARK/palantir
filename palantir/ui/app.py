@@ -1,18 +1,21 @@
 """Main dashboard application using Streamlit."""
 
-import streamlit as st
-import pandas as pd
-from streamlit_option_menu import option_menu
-from palantir.ingest.feed_manager import fetch_and_parse_feeds, filter_news_by_ticker
-from palantir.ingest.metrics_fetcher import fetch_metrics_by_ticker
-from palantir.analysis.analyzer import recommend_by_rules
-from palantir.analysis.recommender import recommend_with_news
-import yfinance as yf
-from datetime import datetime, timedelta
-import re
-import plotly.graph_objs as go
 import csv
 import os
+import re
+from datetime import datetime, timedelta
+
+import pandas as pd
+import plotly.graph_objs as go
+import streamlit as st
+import yfinance as yf
+from streamlit_option_menu import option_menu
+
+from palantir.analysis.analyzer import recommend_by_rules
+from palantir.analysis.recommender import recommend_with_news
+from palantir.ingest.feed_manager import (fetch_and_parse_feeds,
+                                          filter_news_by_ticker)
+from palantir.ingest.metrics_fetcher import fetch_metrics_by_ticker
 
 from .pages import chat, data_explorer, insights, ontology_viewer, settings
 

@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from palantir.auth.models import Base, User
 from main import app
+from palantir.auth.models import Base, User
 
 # 테스트용 인메모리 SQLite 데이터베이스 설정
 TEST_DATABASE_URL = "sqlite:///:memory:"

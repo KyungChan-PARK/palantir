@@ -2,7 +2,7 @@ import io
 import json
 import sys
 import types
-from typing import Union, BinaryIO
+from typing import BinaryIO, Union
 
 import pandas as pd
 from fastapi import HTTPException

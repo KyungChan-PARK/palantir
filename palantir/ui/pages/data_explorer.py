@@ -1,19 +1,19 @@
 """Data explorer page component."""
 
 import json
-from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 
+from ...analytics.metrics import calculate_metrics
 from ...models.llm import QueryGenerator
 from ...ontology.repository import OntologyRepository
-from ...analytics.metrics import calculate_metrics
 
 # Initialize components
 repo = OntologyRepository()

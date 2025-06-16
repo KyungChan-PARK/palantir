@@ -1,10 +1,11 @@
 """Chat assistant page component."""
 
-import json
 import datetime
+import json
 from pathlib import Path
+from typing import Dict, List, Tuple
+
 import streamlit as st
-from typing import List, Tuple, Dict
 
 from ...models.llm import ChatMessage, OntologyAssistant
 

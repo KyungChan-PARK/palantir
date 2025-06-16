@@ -1,10 +1,10 @@
-import streamlit as st
-import pandas as pd
-import requests
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
 import networkx as nx
+import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
+import requests
+import streamlit as st
+from sklearn.metrics.pairwise import cosine_similarity
 
 API_URL = "http://localhost:8000/ontology"
 

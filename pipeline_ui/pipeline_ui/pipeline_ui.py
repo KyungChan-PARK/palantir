@@ -3,7 +3,6 @@
 import reflex as rx
 
 from pipeline_ui import styles
-
 # Import all the pages.
 from pipeline_ui.pages import dashboard, index, settings  # noqa: F401
 

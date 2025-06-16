@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import EmailStr, Field, BaseModel, validator
+from pydantic import BaseModel, EmailStr, Field, validator
 
 from .base import OntologyObject
 

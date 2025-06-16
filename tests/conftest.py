@@ -4,10 +4,11 @@ Palantir 테스트를 위한 공통 픽스처와 설정
 
 import os
 import tempfile
+from pathlib import Path
+from typing import Any, Dict, Generator
+
 import pytest
 import yaml
-from pathlib import Path
-from typing import Generator, Dict, Any
 
 # 테스트 데이터 경로
 TEST_DATA_DIR = Path(__file__).parent / "data"
@@ -90,6 +91,7 @@ def mock_mcp_config() -> Dict[str, Any]:
 def mock_api_client(test_config: Dict[str, Any]):
     """API 클라이언트를 모킹합니다."""
     from fastapi.testclient import TestClient
+
     from palantir.api.main import app
 
     client = TestClient(app)

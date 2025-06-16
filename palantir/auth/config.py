@@ -1,11 +1,10 @@
 import os
-from pydantic_settings import BaseSettings
 from typing import Optional
-from fastapi_users.authentication import (
-    AuthenticationBackend,
-    BearerTransport,
-    JWTStrategy,
-)
+
+from fastapi_users.authentication import (AuthenticationBackend,
+                                          BearerTransport, JWTStrategy)
+from pydantic_settings import BaseSettings
+
 from ..core.config import Settings
 
 

@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from .base import OntologyLink, OntologyObject
-from .objects import Customer, Order, Product, Payment, Delivery, Event
+from .objects import Customer, Delivery, Event, Order, Payment, Product
 from .repository import OntologyRepository
 
 router = APIRouter(prefix="/ontology", tags=["ontology"])
