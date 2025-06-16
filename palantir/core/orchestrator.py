@@ -10,8 +10,12 @@ from palantir.services.mcp.llm_mcp import LLMMCP
 from palantir.services.mcp.test_mcp import TestMCP
 from palantir.services.mcp.web_mcp import WebMCP
 
-from .agents import (DeveloperAgent, PlannerAgent, ReviewerAgent,
-                     SelfImprovementAgent)
+from .agent_impls import (
+    DeveloperAgent,
+    PlannerAgent,
+    ReviewerAgent,
+    SelfImprovementAgent,
+)
 
 
 class Orchestrator:
