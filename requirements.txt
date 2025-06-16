@@ -1,6 +1,6 @@
 # Core dependencies
 fastapi>=0.109.0
-pydantic>=2.6.0
+pydantic[email]>=2.6.0
 uvicorn>=0.27.0
 sqlmodel>=0.0.14
 httpx>=0.26.0
@@ -66,3 +66,4 @@ types-redis>=4.6.0.20231025
 types-psutil>=5.9.5.20231025
 llama-index>=0.10.0
 # apache-airflow==2.9.*
+protobuf<=3.20.3

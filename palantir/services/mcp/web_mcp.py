@@ -1,28 +1,23 @@
 from typing import Optional
 
-import requests
+import aiohttp
+
+from ...core.exceptions import MCPError
 
 
 class WebMCP:
-    """웹 검색/요약을 안전하게 추상화하는 MCP 계층"""
+    """Simple HTTP request wrapper."""
 
-    def __init__(self, search_api_url: Optional[str] = None):
-        self.search_api_url = search_api_url or "https://api.duckduckgo.com/"
-        self.max_query_length = 256
+    def __init__(self, base_url: Optional[str] = None):
+        self.base_url = base_url
 
-    def search(self, query: str) -> str:
-        if len(query) > self.max_query_length:
-            print(f"[WebMCP 오류] 쿼리 길이 초과: {len(query)}")
-            return "[WebMCP 오류] 쿼리 길이 초과"
+    async def request(self, url: str) -> dict:
+        target = self.base_url + url if self.base_url else url
         try:
-            params = {"q": query, "format": "json"}
-            resp = requests.get(self.search_api_url, params=params, timeout=10)
-            if resp.status_code == 200:
-                data = resp.json()
-                print(f"[WebMCP] 검색 성공: {query}")
-                return data.get("AbstractText") or str(data)
-            print(f"[WebMCP 오류] 검색 실패: {resp.status_code}")
-            return f"검색 실패: {resp.status_code}"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(target) as resp:
+                    if resp.status != 200:
+                        raise MCPError("요청 실패")
+                    return await resp.json()
         except Exception as e:
-            print(f"[WebMCP 예외] {e}")
-            return f"[WebMCP 오류] {e}"
+            raise MCPError(str(e)) from e

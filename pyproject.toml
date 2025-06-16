@@ -9,7 +9,7 @@ packages = [{include = "palantir"}]
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "^0.109.0"
-pydantic = "^2.6.0"
+pydantic = {version = "^2.6.0", extras = ["email"]}
 uvicorn = "^0.27.0"
 sqlmodel = "^0.0.14"
 httpx = "^0.26.0"
@@ -44,6 +44,7 @@ pyarrow = "^15.0.0"
 networkx = "^3.2.0"
 beautifulsoup4 = "^4.12.0"
 feedparser = "^6.0.11"
+protobuf = "<=3.20.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
