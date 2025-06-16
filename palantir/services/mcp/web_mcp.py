@@ -1,8 +1,10 @@
 import requests
 from typing import Optional
 
+
 class WebMCP:
     """웹 검색/요약을 안전하게 추상화하는 MCP 계층"""
+
     def __init__(self, search_api_url: Optional[str] = None):
         self.search_api_url = search_api_url or "https://api.duckduckgo.com/"
         self.max_query_length = 256
@@ -22,4 +24,4 @@ class WebMCP:
             return f"검색 실패: {resp.status_code}"
         except Exception as e:
             print(f"[WebMCP 예외] {e}")
-            return f"[WebMCP 오류] {e}" 
+            return f"[WebMCP 오류] {e}"

@@ -8,17 +8,21 @@ import plotly.graph_objects as go
 
 API_URL = "http://localhost:8000/ontology"
 
+
 def create_object_api(obj_type, data):
     resp = requests.post(f"{API_URL}/objects/{obj_type}", json=data)
     return resp.json()
+
 
 def get_objects_api(obj_type):
     resp = requests.post(f"{API_URL}/search", json={"obj_type": obj_type})
     return resp.json()
 
+
 def get_object_embedding(obj_id):
     obj = requests.get(f"{API_URL}/objects/{obj_id}").json()
     return np.array(obj.get("embedding", []))
+
 
 def recommend_similar_objects(obj_id, obj_type, top_k=5):
     target_emb = get_object_embedding(obj_id)
@@ -31,6 +35,7 @@ def recommend_similar_objects(obj_id, obj_type, top_k=5):
             sims.append((o, sim))
     sims.sort(key=lambda x: x[1], reverse=True)
     return sims[:top_k]
+
 
 st.title("Palantir AIP 에이전트 상태 대시보드")
 
@@ -52,7 +57,7 @@ payment_data = {
     "order_id": st.text_input("Order ID"),
     "amount": st.number_input("Amount", value=0.0),
     "method": st.selectbox("Method", ["card", "bank"]),
-    "status": st.selectbox("Status", ["pending", "completed", "failed", "refunded"])
+    "status": st.selectbox("Status", ["pending", "completed", "failed", "refunded"]),
 }
 if st.button("Payment 생성"):
     result = create_object_api("Payment", payment_data)
@@ -68,8 +73,10 @@ st.header("Delivery 객체 생성")
 delivery_data = {
     "order_id": st.text_input("[Delivery] Order ID"),
     "address": st.text_input("[Delivery] Address"),
-    "status": st.selectbox("[Delivery] Status", ["preparing", "shipped", "delivered", "failed"]),
-    "tracking_number": st.text_input("[Delivery] Tracking Number")
+    "status": st.selectbox(
+        "[Delivery] Status", ["preparing", "shipped", "delivered", "failed"]
+    ),
+    "tracking_number": st.text_input("[Delivery] Tracking Number"),
 }
 if st.button("Delivery 생성"):
     result = create_object_api("Delivery", delivery_data)
@@ -85,7 +92,7 @@ st.header("Event 객체 생성")
 event_data = {
     "object_id": st.text_input("[Event] Object ID"),
     "event_type": st.text_input("[Event] Type"),
-    "description": st.text_area("[Event] Description")
+    "description": st.text_area("[Event] Description"),
 }
 if st.button("Event 생성"):
     result = create_object_api("Event", event_data)
@@ -117,7 +124,7 @@ st.header("온톨로지 관계(링크) 생성")
 link_data = {
     "source_id": st.text_input("[Link] Source Object ID"),
     "target_id": st.text_input("[Link] Target Object ID"),
-    "relationship_type": st.text_input("[Link] Relationship Type")
+    "relationship_type": st.text_input("[Link] Relationship Type"),
 }
 if st.button("관계(링크) 생성"):
     resp = requests.post(f"{API_URL}/links", json=link_data)
@@ -127,7 +134,9 @@ st.header("특정 객체의 관계(링크) 조회")
 link_obj_id = st.text_input("[Link] 조회할 Object ID")
 link_direction = st.selectbox("[Link] 방향", ["out", "in"])
 if st.button("관계(링크) 리스트") and link_obj_id:
-    resp = requests.get(f"{API_URL}/objects/{link_obj_id}/links", params={"direction": link_direction})
+    resp = requests.get(
+        f"{API_URL}/objects/{link_obj_id}/links", params={"direction": link_direction}
+    )
     st.write(resp.json())
 
 st.header("유사 Payment 추천")
@@ -139,16 +148,26 @@ if st.button("유사 Payment 추천") and target_id:
 st.header("Event 이력 타임라인")
 event_obj_id = st.text_input("[Event] 타임라인 Object ID")
 if st.button("이벤트 타임라인 조회") and event_obj_id:
-    resp = requests.get(f"{API_URL}/objects/{event_obj_id}/links", params={"direction": "in"})
-    events = [l["object"] for l in resp.json() if l["relationship"]["type"] == "classification"]
+    resp = requests.get(
+        f"{API_URL}/objects/{event_obj_id}/links", params={"direction": "in"}
+    )
+    events = [
+        l["object"]
+        for l in resp.json()
+        if l["relationship"]["type"] == "classification"
+    ]
     events = sorted(events, key=lambda e: e.get("created_at", ""))
     for e in events:
-        st.write(f"{e.get('created_at', '')}: {e.get('event_type', '')} - {e.get('description', '')}")
+        st.write(
+            f"{e.get('created_at', '')}: {e.get('event_type', '')} - {e.get('description', '')}"
+        )
 
 st.header("객체 관계 네트워크 시각화")
 net_obj_id = st.text_input("[네트워크] 중심 Object ID")
 if st.button("관계 네트워크 시각화") and net_obj_id:
-    resp = requests.get(f"{API_URL}/objects/{net_obj_id}/links", params={"direction": "out"})
+    resp = requests.get(
+        f"{API_URL}/objects/{net_obj_id}/links", params={"direction": "out"}
+    )
     links = resp.json()
     G = nx.DiGraph()
     G.add_node(net_obj_id)
@@ -167,6 +186,23 @@ if st.button("관계 네트워크 시각화") and net_obj_id:
     node_x = [pos[n][0] for n in G.nodes()]
     node_y = [pos[n][1] for n in G.nodes()]
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=edge_x, y=edge_y, mode='lines', line=dict(width=1, color='#888'), hoverinfo='none'))
-    fig.add_trace(go.Scatter(x=node_x, y=node_y, mode='markers+text', marker=dict(size=10, color='skyblue'), text=list(G.nodes()), textposition='top center'))
-    st.plotly_chart(fig) 
+    fig.add_trace(
+        go.Scatter(
+            x=edge_x,
+            y=edge_y,
+            mode="lines",
+            line=dict(width=1, color="#888"),
+            hoverinfo="none",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=node_x,
+            y=node_y,
+            mode="markers+text",
+            marker=dict(size=10, color="skyblue"),
+            text=list(G.nodes()),
+            textposition="top center",
+        )
+    )
+    st.plotly_chart(fig)

@@ -1,6 +1,7 @@
 """
 에이전트 테스트
 """
+
 import pytest
 from unittest.mock import Mock, patch
 from palantir.core.agents.planner import PlannerAgent
@@ -8,6 +9,7 @@ from palantir.core.agents.developer import DeveloperAgent
 from palantir.core.agents.reviewer import ReviewerAgent
 from palantir.core.agents.self_improver import SelfImprovementAgent
 from palantir.core.exceptions import AgentError
+
 
 @pytest.mark.unit
 @pytest.mark.agent
@@ -39,6 +41,7 @@ class TestPlannerAgent:
             assert isinstance(subtasks, list)
             mock_generate.assert_called_once()
 
+
 @pytest.mark.unit
 @pytest.mark.agent
 class TestDeveloperAgent:
@@ -68,6 +71,7 @@ class TestDeveloperAgent:
             tests = await developer.write_tests("테스트 대상 코드")
             assert tests is not None
             mock_generate.assert_called_once()
+
 
 @pytest.mark.unit
 @pytest.mark.agent
@@ -99,6 +103,7 @@ class TestReviewerAgent:
             assert security_report is not None
             mock_generate.assert_called_once()
 
+
 @pytest.mark.unit
 @pytest.mark.agent
 class TestSelfImprovementAgent:
@@ -116,11 +121,9 @@ class TestSelfImprovementAgent:
         """성능 분석 테스트"""
         with patch("palantir.services.mcp.llm.LLM_MCP.generate") as mock_generate:
             mock_generate.return_value = mock_llm_response
-            analysis = await improver.analyze_performance({
-                "accuracy": 0.95,
-                "latency": 100,
-                "memory": 512
-            })
+            analysis = await improver.analyze_performance(
+                {"accuracy": 0.95, "latency": 100, "memory": 512}
+            )
             assert analysis is not None
             mock_generate.assert_called_once()
 
@@ -129,12 +132,12 @@ class TestSelfImprovementAgent:
         """프롬프트 최적화 테스트"""
         with patch("palantir.services.mcp.llm.LLM_MCP.generate") as mock_generate:
             mock_generate.return_value = mock_llm_response
-            optimized = await improver.optimize_prompts({
-                "system": "기존 시스템 프롬프트",
-                "user": "기존 사용자 프롬프트"
-            })
+            optimized = await improver.optimize_prompts(
+                {"system": "기존 시스템 프롬프트", "user": "기존 사용자 프롬프트"}
+            )
             assert optimized is not None
             mock_generate.assert_called_once()
+
 
 @pytest.mark.integration
 @pytest.mark.agent
@@ -145,26 +148,24 @@ class TestAgentIntegration:
     def agents(self, mock_agent_config, mock_mcp_config):
         """테스트용 에이전트 인스턴스들을 생성합니다."""
         planner = PlannerAgent(
-            config={**mock_agent_config, "type": "planner"},
-            mcp_config=mock_mcp_config
+            config={**mock_agent_config, "type": "planner"}, mcp_config=mock_mcp_config
         )
         developer = DeveloperAgent(
             config={**mock_agent_config, "type": "developer"},
-            mcp_config=mock_mcp_config
+            mcp_config=mock_mcp_config,
         )
         reviewer = ReviewerAgent(
-            config={**mock_agent_config, "type": "reviewer"},
-            mcp_config=mock_mcp_config
+            config={**mock_agent_config, "type": "reviewer"}, mcp_config=mock_mcp_config
         )
         improver = SelfImprovementAgent(
             config={**mock_agent_config, "type": "self_improver"},
-            mcp_config=mock_mcp_config
+            mcp_config=mock_mcp_config,
         )
         return {
             "planner": planner,
             "developer": developer,
             "reviewer": reviewer,
-            "improver": improver
+            "improver": improver,
         }
 
     @pytest.mark.asyncio
@@ -187,11 +188,7 @@ class TestAgentIntegration:
             assert review is not None
 
             # 4. SelfImprover가 개선
-            metrics = {
-                "accuracy": 0.95,
-                "latency": 100,
-                "memory": 512
-            }
+            metrics = {"accuracy": 0.95, "latency": 100, "memory": 512}
             improvement = await agents["improver"].analyze_performance(metrics)
             assert improvement is not None
 
@@ -220,10 +217,9 @@ class TestAgentIntegration:
             mock_generate.return_value = mock_llm_response
 
             # Planner가 메모리 저장
-            agents["planner"].update_memory("task_info", {
-                "description": "테스트 작업",
-                "priority": "high"
-            })
+            agents["planner"].update_memory(
+                "task_info", {"description": "테스트 작업", "priority": "high"}
+            )
 
             # Developer가 메모리 접근
             task_info = agents["developer"].get_memory("task_info")
@@ -236,4 +232,4 @@ class TestAgentIntegration:
 
             # SelfImprover가 메모리 확인
             final_info = agents["improver"].get_memory("task_info")
-            assert final_info["status"] == "reviewed" 
+            assert final_info["status"] == "reviewed"

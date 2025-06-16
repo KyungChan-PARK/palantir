@@ -16,7 +16,7 @@ repo = OntologyRepository()
 
 class SearchQuery(BaseModel):
     """Search query parameters."""
-    
+
     obj_type: Optional[str] = None
     properties: Optional[Dict[str, Any]] = None
 
@@ -30,16 +30,16 @@ async def create_object(obj_type: str, data: Dict[str, Any]) -> Dict[str, Any]:
         "Product": Product,
         "Payment": Payment,
         "Delivery": Delivery,
-        "Event": Event
+        "Event": Event,
     }
-    
+
     if obj_type not in model_map:
         raise HTTPException(status_code=400, detail=f"Unknown object type: {obj_type}")
-    
+
     model_cls = model_map[obj_type]
     obj = model_cls(**data)
     repo.add_object(obj)
-    
+
     return obj.dict()
 
 
@@ -51,7 +51,7 @@ async def get_object(obj_id: UUID) -> Dict[str, Any]:
         obj = repo.get_object(obj_id, model_cls)
         if obj:
             return obj.dict()
-    
+
     raise HTTPException(status_code=404, detail=f"Object not found: {obj_id}")
 
 
@@ -62,11 +62,11 @@ async def update_object(obj_id: UUID, data: Dict[str, Any]) -> Dict[str, Any]:
     existing = await get_object(obj_id)
     if not existing:
         raise HTTPException(status_code=404, detail=f"Object not found: {obj_id}")
-    
+
     model_cls = model_map[existing["type"]]
     obj = model_cls(**{**data, "id": obj_id})
     repo.update_object(obj)
-    
+
     return obj.dict()
 
 
@@ -86,37 +86,30 @@ async def create_link(link: OntologyLink) -> Dict[str, Any]:
     # Verify both objects exist
     source = await get_object(link.source_id)
     target = await get_object(link.target_id)
-    
+
     if not source or not target:
         raise HTTPException(
-            status_code=400,
-            detail="Both source and target objects must exist"
+            status_code=400, detail="Both source and target objects must exist"
         )
-    
+
     repo.add_link(link)
     return link.dict()
 
 
 @router.get("/objects/{obj_id}/links")
 async def get_links(
-    obj_id: UUID,
-    relationship_type: Optional[str] = None,
-    direction: str = "out"
+    obj_id: UUID, relationship_type: Optional[str] = None, direction: str = "out"
 ) -> List[Dict[str, Any]]:
     """Get relationships for an object."""
     if direction not in ["in", "out"]:
         raise HTTPException(
-            status_code=400,
-            detail="Direction must be either 'in' or 'out'"
+            status_code=400, detail="Direction must be either 'in' or 'out'"
         )
-    
+
     return repo.get_linked_objects(obj_id, relationship_type, direction)
 
 
 @router.post("/search")
 async def search_objects(query: SearchQuery) -> List[Dict[str, Any]]:
     """Search for objects matching criteria."""
-    return repo.search_objects(
-        obj_type=query.obj_type,
-        properties=query.properties
-    ) 
+    return repo.search_objects(obj_type=query.obj_type, properties=query.properties)

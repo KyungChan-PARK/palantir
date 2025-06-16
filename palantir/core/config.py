@@ -2,12 +2,13 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 from pydantic import ConfigDict
 
+
 class Settings(BaseSettings):
     OFFLINE_MODE: bool = False
     LLM_PROVIDER: str = "openai"
     SECRET_KEY: str = "development-secret-key"
     ACCESS_TOKEN_EXPIRE_SECONDS: int = 3600
-    
+
     # Redis 설정
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
@@ -35,10 +36,7 @@ class Settings(BaseSettings):
     openai_api_key: str = "test-openai-key"
     db_path: str = "./data/agent.db"
 
-    model_config = ConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="allow"
-    )
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
+
 
 settings = Settings()

@@ -1,8 +1,10 @@
 from .base_agent import BaseAgent, AgentConfig
 from typing import Any, Dict, List
 
+
 class PlannerAgent(BaseAgent):
     """중앙 오케스트레이터 역할의 에이전트"""
+
     def __init__(self, config: AgentConfig):
         super().__init__(config)
 
@@ -21,4 +23,4 @@ class PlannerAgent(BaseAgent):
 
     def plan_tasks(self, input_data: Any) -> List[Dict[str, Any]]:
         # 입력을 여러 Task로 분해 (스켈레톤)
-        return [{"subtask": input_data}]  # 실제로는 더 세분화 
+        return [{"subtask": input_data}]  # 실제로는 더 세분화

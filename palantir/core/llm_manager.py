@@ -4,6 +4,7 @@ import openai
 from openai import AzureOpenAI
 from .config import settings
 
+
 class LLMManager:
     def __init__(self, offline: bool = False):
         self.offline = offline
@@ -16,14 +17,12 @@ class LLMManager:
             return
 
         if settings.LLM_PROVIDER == "openai":
-            self.client = openai.OpenAI(
-                api_key=os.getenv("OPENAI_API_KEY")
-            )
+            self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         elif settings.LLM_PROVIDER == "azure":
             self.client = AzureOpenAI(
                 api_key=os.getenv("AZURE_OPENAI_API_KEY"),
                 api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT")
+                azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             )
         elif settings.LLM_PROVIDER == "local":
             # 로컬 모델 설정
@@ -43,11 +42,14 @@ class LLMManager:
             response = self.client.chat.completions.create(
                 model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
                 messages=[
-                    {"role": "system", "content": f"당신은 {mode} 코드 생성 전문가입니다."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": f"당신은 {mode} 코드 생성 전문가입니다.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=1000
+                max_tokens=1000,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -62,11 +64,14 @@ class LLMManager:
             response = self.client.chat.completions.create(
                 model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
                 messages=[
-                    {"role": "system", "content": "당신은 전문적인 텍스트 생성 도우미입니다."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "당신은 전문적인 텍스트 생성 도우미입니다.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
-                max_tokens=1000
+                max_tokens=1000,
             )
             return response.choices[0].message.content
         except Exception as e:

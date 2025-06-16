@@ -19,6 +19,7 @@ class UserDB(Base):  # type: ignore[misc]
     @classmethod
     def get_by_username(cls, username: str) -> Optional["UserDB"]:
         from .database import get_db
+
         db = next(get_db())
         return db.query(cls).filter(cls.username == username).first()
 
@@ -29,5 +30,5 @@ class UserDB(Base):  # type: ignore[misc]
             "email": self.email,
             "full_name": self.full_name,
             "disabled": self.disabled,
-            "scopes": self.scopes
+            "scopes": self.scopes,
         }

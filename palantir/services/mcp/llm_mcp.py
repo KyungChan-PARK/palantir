@@ -1,15 +1,19 @@
 import os
 from typing import Optional
 
+
 class LLMMCP:
     """여러 LLM을 일관된 방식으로 호출하는 MCP 계층"""
+
     def __init__(self, provider: str = "openai", model: Optional[str] = None):
         self.provider = provider
         self.model = model or os.getenv("OPENAI_MODEL", "gpt-4-turbo-preview")
         self.api_key = os.getenv("OPENAI_API_KEY")
         # TODO: provider별 클라이언트 초기화(OpenAI, Azure, 로컬 등)
 
-    def generate(self, prompt: str, system_message: Optional[str] = None, **kwargs) -> str:
+    def generate(
+        self, prompt: str, system_message: Optional[str] = None, **kwargs
+    ) -> str:
         """프롬프트를 LLM에 전달하고 응답을 반환한다."""
         if self.provider == "openai":
             try:
@@ -26,7 +30,7 @@ class LLMMCP:
                     messages=messages,
                     api_key=self.api_key,
                     temperature=kwargs.get("temperature", 0.7),
-                    max_tokens=kwargs.get("max_tokens", 512)
+                    max_tokens=kwargs.get("max_tokens", 512),
                 )
                 # 다양한 응답 형태에 대응
                 if isinstance(response, dict):
@@ -37,4 +41,4 @@ class LLMMCP:
             except Exception as e:
                 return f"[LLM 오류] {str(e)}"
         # TODO: Azure/로컬 등 확장
-        return "(LLM 응답 예시)" 
+        return "(LLM 응답 예시)"

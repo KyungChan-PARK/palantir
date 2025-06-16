@@ -8,10 +8,7 @@ from sqlalchemy import Column, String, Boolean, Integer
 
 DATABASE_URL = "sqlite+aiosqlite:///./users.db"
 
-engine = create_async_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+engine = create_async_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 async_session_maker = sessionmaker(
     engine,
@@ -21,8 +18,10 @@ async_session_maker = sessionmaker(
     autoflush=False,
 )
 
+
 class Base(DeclarativeBase):
     pass
+
 
 class User(SQLAlchemyBaseUserTable[int], Base):
     id = Column(Integer, primary_key=True)
@@ -33,9 +32,11 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     is_superuser = Column(Boolean, default=False, nullable=False)
     is_verified = Column(Boolean, default=False, nullable=False)
 
+
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
 
+
 async def get_user_db(session: AsyncSession = Depends(get_async_session)):
-    yield SQLAlchemyUserDatabase(session, User) 
+    yield SQLAlchemyUserDatabase(session, User)

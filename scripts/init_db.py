@@ -2,6 +2,7 @@ import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
 from palantir.auth.models import Base
 
+
 async def init_db():
     engine = create_async_engine("sqlite+aiosqlite:///./users.db")
     async with engine.begin() as conn:
@@ -9,5 +10,6 @@ async def init_db():
         await conn.run_sync(Base.metadata.create_all)
     await engine.dispose()
 
+
 if __name__ == "__main__":
-    asyncio.run(init_db()) 
+    asyncio.run(init_db())

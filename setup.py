@@ -16,7 +16,7 @@ setup(
         "python-multipart>=0.0.9",
         "sqlalchemy>=2.0.0",
         "aiosqlite>=0.20.0",
-        "gitpython>=3.1.40"
+        "gitpython>=3.1.40",
     ],
-    python_requires=">=3.8"
-) 
+    python_requires=">=3.8",
+)

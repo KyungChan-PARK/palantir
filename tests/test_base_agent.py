@@ -1,10 +1,12 @@
 """
 BaseAgent 테스트
 """
+
 import pytest
 from unittest.mock import Mock, patch
 from palantir.core.agents.base import BaseAgent
 from palantir.core.exceptions import AgentError, MCPError
+
 
 @pytest.mark.unit
 @pytest.mark.agent
@@ -35,7 +37,7 @@ class TestBaseAgent:
                 prompt="테스트 프롬프트",
                 model=agent.model,
                 temperature=agent.temperature,
-                max_tokens=agent.max_tokens
+                max_tokens=agent.max_tokens,
             )
 
     @pytest.mark.asyncio
@@ -71,13 +73,11 @@ class TestBaseAgent:
         """도구 실행 테스트"""
         mock_tool = Mock()
         mock_tool.return_value = "도구 실행 결과"
-        
+
         result = await agent.execute_tool(
-            tool_name="test_tool",
-            tool_func=mock_tool,
-            args={"arg1": "value1"}
+            tool_name="test_tool", tool_func=mock_tool, args={"arg1": "value1"}
         )
-        
+
         assert result == "도구 실행 결과"
         mock_tool.assert_called_once_with(arg1="value1")
 
@@ -86,12 +86,10 @@ class TestBaseAgent:
         """도구 실행 에러 처리 테스트"""
         mock_tool = Mock()
         mock_tool.side_effect = Exception("도구 실행 오류")
-        
+
         with pytest.raises(AgentError) as exc_info:
             await agent.execute_tool(
-                tool_name="test_tool",
-                tool_func=mock_tool,
-                args={"arg1": "value1"}
+                tool_name="test_tool", tool_func=mock_tool, args={"arg1": "value1"}
             )
         assert "도구 실행 중 오류 발생" in str(exc_info.value)
 
@@ -99,13 +97,13 @@ class TestBaseAgent:
         """메모리 접근 테스트"""
         # 메모리 저장
         agent.memory["test_key"] = "test_value"
-        
+
         # 메모리 조회
         assert agent.get_memory("test_key") == "test_value"
-        
+
         # 존재하지 않는 키
         assert agent.get_memory("non_existent") is None
-        
+
         # 기본값 설정
         assert agent.get_memory("non_existent", default="default") == "default"
 
@@ -114,7 +112,7 @@ class TestBaseAgent:
         # 새로운 메모리 추가
         agent.update_memory("test_key", "test_value")
         assert agent.memory["test_key"] == "test_value"
-        
+
         # 기존 메모리 업데이트
         agent.update_memory("test_key", "new_value")
         assert agent.memory["test_key"] == "new_value"
@@ -124,7 +122,7 @@ class TestBaseAgent:
         # 메모리 설정
         agent.memory["test_key1"] = "test_value1"
         agent.memory["test_key2"] = "test_value2"
-        
+
         # 메모리 초기화
         agent.clear_memory()
         assert len(agent.memory) == 0
@@ -133,12 +131,12 @@ class TestBaseAgent:
     async def test_handle_error(self, agent):
         """에러 처리 테스트"""
         error = Exception("테스트 에러")
-        
+
         # 기본 에러 처리
         with pytest.raises(AgentError) as exc_info:
             await agent.handle_error(error, "테스트 작업")
         assert "테스트 작업 중 오류 발생" in str(exc_info.value)
-        
+
         # 커스텀 에러 처리
         custom_handler = Mock()
         agent.error_handlers[Exception] = custom_handler
@@ -152,9 +150,10 @@ class TestBaseAgent:
 
     def test_process(self):
         """process 메서드 테스트"""
+
         class TestAgent(BaseAgent):
             def process(self, input_data, state=None):
                 return input_data
-                
+
         agent = TestAgent("test_agent")
-        assert agent.process("test_input") == "test_input" 
+        assert agent.process("test_input") == "test_input"

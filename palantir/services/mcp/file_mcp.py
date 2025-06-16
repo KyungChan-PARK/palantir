@@ -1,8 +1,10 @@
 import os
 from typing import Optional
 
+
 class FileMCP:
     """파일 시스템 접근을 안전하게 추상화하는 MCP 계층"""
+
     def __init__(self, base_dir: Optional[str] = None):
         self.base_dir = os.path.abspath(base_dir or os.getcwd())
 
@@ -40,4 +42,4 @@ class FileMCP:
             return files
         except Exception as e:
             print(f"[FileMCP 오류] 파일 목록 실패: {e}")
-            return [] 
+            return []

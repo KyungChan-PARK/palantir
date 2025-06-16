@@ -4,7 +4,9 @@ context_manager.py
 - 각 에이전트별 개별 컨텍스트 + 글로벌(공유) 컨텍스트 계층화
 - 태스크/실패/정책/외부지식/온톨로지 등 다양한 컨텍스트 관리
 """
+
 from typing import Any, Dict, Optional
+
 
 class ContextManager:
     def __init__(self):
@@ -51,4 +53,4 @@ class ContextManager:
         # 외부지식 등 추가 병합 가능
         return merged
 
-    # TODO: VectorDB/ChromaDB 등 외부 RAG 연동, 온톨로지/문서 자동 주입 등 확장 
+    # TODO: VectorDB/ChromaDB 등 외부 RAG 연동, 온톨로지/문서 자동 주입 등 확장

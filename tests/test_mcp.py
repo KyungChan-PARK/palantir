@@ -1,6 +1,7 @@
 """
 MCP (Model Control Plane) 테스트
 """
+
 import pytest
 from unittest.mock import Mock, patch
 from pathlib import Path
@@ -12,6 +13,7 @@ from palantir.services.mcp.file import File_MCP
 from palantir.services.mcp.git import Git_MCP
 from palantir.services.mcp.web import Web_MCP
 from palantir.core.exceptions import MCPError
+
 
 @pytest.mark.unit
 @pytest.mark.mcp
@@ -37,6 +39,7 @@ class TestBaseMCP:
         with pytest.raises(ValueError):
             BaseMCP.validate_config(invalid_config)
 
+
 @pytest.mark.unit
 @pytest.mark.mcp
 class TestLLM_MCP:
@@ -56,7 +59,7 @@ class TestLLM_MCP:
                 prompt="테스트 프롬프트",
                 model="gpt-4",
                 temperature=0.7,
-                max_tokens=1000
+                max_tokens=1000,
             )
             assert response == mock_llm_response
 
@@ -66,10 +69,8 @@ class TestLLM_MCP:
         with patch("openai.ChatCompletion.create") as mock_create:
             mock_create.side_effect = Exception("API 오류")
             with pytest.raises(MCPError):
-                await llm_mcp.generate(
-                    prompt="테스트 프롬프트",
-                    model="gpt-4"
-                )
+                await llm_mcp.generate(prompt="테스트 프롬프트", model="gpt-4")
+
 
 @pytest.mark.unit
 @pytest.mark.mcp
@@ -110,6 +111,7 @@ class TestFile_MCP:
         content = await file_mcp.read_file(test_file)
         assert content == test_content
 
+
 @pytest.mark.unit
 @pytest.mark.mcp
 class TestGit_MCP:
@@ -128,13 +130,12 @@ class TestGit_MCP:
         with patch("git.Repo") as mock_repo:
             # 커밋
             await git_mcp.commit("테스트 커밋")
-            mock_repo.return_value.index.commit.assert_called_once_with(
-                "테스트 커밋"
-            )
+            mock_repo.return_value.index.commit.assert_called_once_with("테스트 커밋")
 
             # 푸시
             await git_mcp.push()
             mock_repo.return_value.remote.return_value.push.assert_called_once()
+
 
 @pytest.mark.unit
 @pytest.mark.mcp
@@ -170,6 +171,6 @@ class TestWeb_MCP:
         async with aiohttp.ClientSession() as session:
             with patch.object(session, "get") as mock_get:
                 mock_get.side_effect = aiohttp.ClientError()
-                
+
                 with pytest.raises(MCPError):
-                    await web_mcp.request(test_url) 
+                    await web_mcp.request(test_url)

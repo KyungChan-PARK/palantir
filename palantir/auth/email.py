@@ -5,6 +5,7 @@ from email.mime.multipart import MIMEMultipart
 from typing import Optional
 from .config import settings
 
+
 class EmailManager:
     def __init__(self):
         self.host = os.getenv("SMTP_HOST", "")
@@ -85,4 +86,5 @@ class EmailManager:
             print(f"이메일 발송 실패: {str(e)}")
             return False
 
-email_manager = EmailManager() 
+
+email_manager = EmailManager()

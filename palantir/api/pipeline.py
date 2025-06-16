@@ -6,9 +6,11 @@ from palantir.process.flows import add_ontology_from_etl_flow
 
 router = APIRouter()
 
+
 class PipelineConfig(BaseModel):
     name: str
     config: Dict[str, Any]
+
 
 @router.post("/pipeline/validate")
 async def validate_pipeline(file: UploadFile = File(...)):
@@ -26,6 +28,7 @@ async def validate_pipeline(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.post("/pipeline/submit")
 async def submit_pipeline(file: UploadFile = File(...)):
     try:
@@ -37,20 +40,23 @@ async def submit_pipeline(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.post("/pipeline/create")
 async def create_pipeline(config: PipelineConfig):
     # 테스트에서 mock 객체의 id를 반환하도록 처리
-    if hasattr(config, 'id'):
+    if hasattr(config, "id"):
         pipeline_id = config.id
     else:
         pipeline_id = 1
     return {"status": "success", "id": pipeline_id, "pipeline": config}
 
+
 @router.get("/pipeline")
 def pipeline():
     return {"message": "pipeline endpoint"}
 
+
 @router.post("/pipeline/run_etl_ontology")
 def run_etl_ontology_pipeline():
     result = add_ontology_from_etl_flow()
-    return {"status": "completed", "result": result} 
+    return {"status": "completed", "result": result}

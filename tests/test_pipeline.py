@@ -1,6 +1,7 @@
 # FastAPI 엔드포인트 테스트 (YAML 유효성 검증)
 from fastapi.testclient import TestClient
 from main import app
+
 client = TestClient(app)
 
 VALID_YAML = """
@@ -20,6 +21,8 @@ tasks:
   - id: t1
     params: {}
 """
+
+
 def test_pipeline_validate_success():
     res = client.post(
         "/pipeline/validate", files={"file": ("pipeline.yaml", VALID_YAML)}
@@ -27,12 +30,14 @@ def test_pipeline_validate_success():
     assert res.status_code == 200
     assert res.json()["valid"] is True
 
+
 def test_pipeline_validate_fail():
     res = client.post(
         "/pipeline/validate", files={"file": ("pipeline.yaml", INVALID_YAML)}
     )
     assert res.status_code == 200
     assert res.json()["valid"] is False
+
 
 # DataPipeline 단위 테스트 (main)
 import pytest
@@ -44,42 +49,41 @@ import tempfile
 import shutil
 from src.data.pipeline import DataPipeline, DataConfig
 
+
 @pytest.fixture
 def temp_dir():
     temp_dir = tempfile.mkdtemp()
     yield temp_dir
     shutil.rmtree(temp_dir)
 
+
 @pytest.fixture
 def pipeline(temp_dir):
     config = DataConfig(
         input_path=str(Path(temp_dir) / "input"),
         output_path=str(Path(temp_dir) / "output"),
-        db_path=str(Path(temp_dir) / "test.db")
+        db_path=str(Path(temp_dir) / "test.db"),
     )
     pipeline = DataPipeline(config)
     yield pipeline
     pipeline.close()
 
+
 def test_process_data(pipeline):
-    data = pd.DataFrame({
-        'A': [1, 2, np.nan, 4, 5, 100],
-        'B': [1, 2, 3, 4, 5, 6]
-    })
+    data = pd.DataFrame({"A": [1, 2, np.nan, 4, 5, 100], "B": [1, 2, 3, 4, 5, 6]})
     processed_data = pipeline.process_data(data)
     assert len(processed_data) < len(data)
-    assert not processed_data['A'].isna().any()
+    assert not processed_data["A"].isna().any()
+
 
 def test_save_to_parquet(pipeline):
-    data = pd.DataFrame({
-        'A': [1, 2, 3],
-        'B': ['a', 'b', 'c']
-    })
-    pipeline.save_to_parquet(data, 'test')
-    output_path = Path(pipeline.config.output_path) / 'test.parquet'
+    data = pd.DataFrame({"A": [1, 2, 3], "B": ["a", "b", "c"]})
+    pipeline.save_to_parquet(data, "test")
+    output_path = Path(pipeline.config.output_path) / "test.parquet"
     assert output_path.exists()
     loaded_data = pd.read_parquet(output_path)
     pd.testing.assert_frame_equal(data, loaded_data)
+
 
 def test_log_agent_action(pipeline):
     agent_id = "test_agent"
@@ -92,13 +96,14 @@ def test_log_agent_action(pipeline):
         action=action,
         input_data=input_data,
         output_data=output_data,
-        status=status
+        status=status,
     )
     logs = pipeline.get_agent_logs(agent_id=agent_id)
     assert len(logs) == 1
-    assert logs.iloc[0]['agent_id'] == agent_id
-    assert logs.iloc[0]['action'] == action
-    assert logs.iloc[0]['status'] == status
+    assert logs.iloc[0]["agent_id"] == agent_id
+    assert logs.iloc[0]["action"] == action
+    assert logs.iloc[0]["status"] == status
+
 
 def test_log_performance_metrics(pipeline):
     cpu_usage = 50.0
@@ -109,14 +114,15 @@ def test_log_performance_metrics(pipeline):
         cpu_usage=cpu_usage,
         memory_usage=memory_usage,
         active_agents=active_agents,
-        total_requests=total_requests
+        total_requests=total_requests,
     )
     metrics = pipeline.get_performance_metrics()
     assert len(metrics) == 1
-    assert metrics.iloc[0]['cpu_usage'] == cpu_usage
-    assert metrics.iloc[0]['memory_usage'] == memory_usage
-    assert metrics.iloc[0]['active_agents'] == active_agents
-    assert metrics.iloc[0]['total_requests'] == total_requests
+    assert metrics.iloc[0]["cpu_usage"] == cpu_usage
+    assert metrics.iloc[0]["memory_usage"] == memory_usage
+    assert metrics.iloc[0]["active_agents"] == active_agents
+    assert metrics.iloc[0]["total_requests"] == total_requests
+
 
 def test_get_agent_logs_with_date_range(pipeline):
     now = datetime.now()
@@ -126,12 +132,12 @@ def test_get_agent_logs_with_date_range(pipeline):
         action="old_action",
         input_data={},
         output_data={},
-        status="success"
+        status="success",
     )
     pipeline.log_agent_action(
         agent_id=agent_id,
         action="new_action",
         input_data={},
         output_data={},
-        status="success"
+        status="success",
     )

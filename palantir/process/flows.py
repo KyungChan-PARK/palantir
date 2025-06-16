@@ -28,43 +28,43 @@ def transform_data(df: pd.DataFrame) -> pd.DataFrame:
     """Transform the extracted data."""
     logger = get_run_logger()
     logger.info("Transforming data")
-    
+
     # Add your transformation logic here
     # Example: Basic cleaning
     df = df.dropna()
     df = df.drop_duplicates()
-    
+
     return df
 
 
 @task
-def load_to_duckdb(df: pd.DataFrame, table_name: str, db_path: Optional[str] = None) -> None:
+def load_to_duckdb(
+    df: pd.DataFrame, table_name: str, db_path: Optional[str] = None
+) -> None:
     """Load transformed data to DuckDB."""
     import duckdb
-    
+
     logger = get_run_logger()
     logger.info(f"Loading data to table {table_name}")
-    
+
     # Connect to DuckDB (in-memory if no path provided)
     conn = duckdb.connect(db_path) if db_path else duckdb.connect()
-    
+
     # Create table and load data
     conn.execute(f"CREATE TABLE IF NOT EXISTS {table_name} AS SELECT * FROM df")
     conn.close()
-    
+
     logger.info("Data loaded successfully")
 
 
 @flow(name="csv_to_duckdb")
 def csv_to_duckdb_flow(
-    csv_path: str,
-    table_name: str,
-    db_path: Optional[str] = None
+    csv_path: str, table_name: str, db_path: Optional[str] = None
 ) -> None:
     """Main ETL flow for processing CSV files to DuckDB."""
     # Convert string path to Path object
     file_path = Path(csv_path)
-    
+
     # Execute the ETL pipeline
     raw_data = extract_csv(file_path)
     transformed_data = transform_data(raw_data)
@@ -74,6 +74,7 @@ def csv_to_duckdb_flow(
 @task
 def load_to_sqlite(df: pd.DataFrame, table_name: str, db_path: str):
     import sqlite3
+
     conn = sqlite3.connect(db_path)
     df.to_sql(table_name, conn, if_exists="replace", index=False)
     conn.close()
@@ -95,7 +96,9 @@ def load_embeddings_to_chroma(embeddings, metadatas, collection_name: str = "def
 
 
 @flow(name="csv_to_sqlite_and_embed")
-def csv_to_sqlite_and_embed_flow(csv_path: str, table_name: str, db_path: str, text_column: str = "text"):
+def csv_to_sqlite_and_embed_flow(
+    csv_path: str, table_name: str, db_path: str, text_column: str = "text"
+):
     file_path = Path(csv_path)
     raw_data = extract_csv(file_path)
     transformed_data = transform_data(raw_data)
@@ -113,9 +116,12 @@ def train_simple_classifier(df: pd.DataFrame, label_column: str):
     from sklearn.model_selection import train_test_split
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.metrics import accuracy_score
+
     X = df.drop(columns=[label_column])
     y = df[label_column]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
     clf = RandomForestClassifier()
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
@@ -125,26 +131,31 @@ def train_simple_classifier(df: pd.DataFrame, label_column: str):
 
 ONTOLOGY_API_URL = "http://localhost:8000/ontology"
 
+
 def register_payment_to_ontology(payment_dict):
     resp = requests.post(f"{ONTOLOGY_API_URL}/objects/Payment", json=payment_dict)
     return resp.json()
+
 
 def register_delivery_to_ontology(delivery_dict):
     resp = requests.post(f"{ONTOLOGY_API_URL}/objects/Delivery", json=delivery_dict)
     return resp.json()
 
+
 def register_event_to_ontology(event_dict):
     resp = requests.post(f"{ONTOLOGY_API_URL}/objects/Event", json=event_dict)
     return resp.json()
+
 
 def create_link_api(source_id, target_id, relationship_type):
     data = {
         "source_id": source_id,
         "target_id": target_id,
-        "relationship_type": relationship_type
+        "relationship_type": relationship_type,
     }
     resp = requests.post(f"{ONTOLOGY_API_URL}/links", json=data)
     return resp.json()
+
 
 @task
 def etl_and_register_payments_with_links(csv_path):
@@ -154,12 +165,13 @@ def etl_and_register_payments_with_links(csv_path):
             "order_id": row["order_id"],
             "amount": row["amount"],
             "method": row["method"],
-            "status": row["status"]
+            "status": row["status"],
         }
         payment_obj = register_payment_to_ontology(payment)
         # 주문-결제 관계 생성
         if "order_id" in row and "id" in payment_obj:
             create_link_api(row["order_id"], payment_obj["id"], "has_payment")
+
 
 @task
 def etl_and_register_deliveries_with_links(csv_path):
@@ -169,12 +181,13 @@ def etl_and_register_deliveries_with_links(csv_path):
             "order_id": row["order_id"],
             "address": row["address"],
             "status": row["status"],
-            "tracking_number": row.get("tracking_number", "")
+            "tracking_number": row.get("tracking_number", ""),
         }
         delivery_obj = register_delivery_to_ontology(delivery)
         # 주문-배송 관계 생성
         if "order_id" in row and "id" in delivery_obj:
             create_link_api(row["order_id"], delivery_obj["id"], "has_delivery")
+
 
 @task
 def etl_and_register_events(csv_path):
@@ -183,7 +196,7 @@ def etl_and_register_events(csv_path):
         event = {
             "object_id": row["object_id"],
             "event_type": row["event_type"],
-            "description": row["description"]
+            "description": row["description"],
         }
         register_event_to_ontology(event)
 
@@ -191,16 +204,14 @@ def etl_and_register_events(csv_path):
 def update_object_embedding(obj_id, obj_type, embedding):
     # 객체 조회 후 embedding 속성 추가/업데이트
     obj = requests.get(f"{ONTOLOGY_API_URL}/objects/{obj_id}").json()
-    obj["embedding"] = embedding.tolist() if hasattr(embedding, 'tolist') else embedding
+    obj["embedding"] = embedding.tolist() if hasattr(embedding, "tolist") else embedding
     requests.put(f"{ONTOLOGY_API_URL}/objects/{obj_id}", json=obj)
 
+
 def register_event_for_prediction(obj_id, event_type, description):
-    event = {
-        "object_id": obj_id,
-        "event_type": event_type,
-        "description": description
-    }
+    event = {"object_id": obj_id, "event_type": event_type, "description": description}
     register_event_to_ontology(event)
+
 
 @task
 def generate_and_register_embeddings(obj_type, text_field="description"):
@@ -210,8 +221,11 @@ def generate_and_register_embeddings(obj_type, text_field="description"):
     for obj, emb in zip(objs, embeddings):
         update_object_embedding(obj["id"], obj_type, emb)
 
+
 @task
-def register_classification_events(obj_type, predictions, label_field="predicted_label"):
+def register_classification_events(
+    obj_type, predictions, label_field="predicted_label"
+):
     objs = get_objects_api(obj_type)
     for obj, pred in zip(objs, predictions):
         desc = f"{label_field}: {pred}"
@@ -220,8 +234,12 @@ def register_classification_events(obj_type, predictions, label_field="predicted
 
 def load_customers_from_csv(path: str) -> list:
     df = pd.read_csv(path)
-    customers = [Customer(id=row['id'], email=row['email'], name=row['name']) for _, row in df.iterrows()]
+    customers = [
+        Customer(id=row["id"], email=row["email"], name=row["name"])
+        for _, row in df.iterrows()
+    ]
     return customers
+
 
 def embed_and_store_customers(customers: list, chroma_path: str = "chroma_customers"):
     model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -230,10 +248,15 @@ def embed_and_store_customers(customers: list, chroma_path: str = "chroma_custom
     client = chromadb.PersistentClient(path=chroma_path)
     collection = client.get_or_create_collection("customers")
     for c, emb in zip(customers, embeddings):
-        collection.add(documents=[c.display_name], embeddings=[emb.tolist()], ids=[str(c.id)])
+        collection.add(
+            documents=[c.display_name], embeddings=[emb.tolist()], ids=[str(c.id)]
+        )
     return collection.count()
 
-def cluster_customers(customers: list, n_clusters: int = 3, chroma_path: str = "chroma_customers"):
+
+def cluster_customers(
+    customers: list, n_clusters: int = 3, chroma_path: str = "chroma_customers"
+):
     model = SentenceTransformer("all-MiniLM-L6-v2")
     texts = [c.display_name for c in customers]
     embeddings = model.encode(texts)
@@ -243,12 +266,21 @@ def cluster_customers(customers: list, n_clusters: int = 3, chroma_path: str = "
     events = []
     for c, label in zip(customers, labels):
         c.cluster_label = int(label)
-        events.append(Event(event_type="customer_clustered", related_id=c.id, timestamp=datetime.utcnow(), description=f"Cluster: {label}"))
+        events.append(
+            Event(
+                event_type="customer_clustered",
+                related_id=c.id,
+                timestamp=datetime.utcnow(),
+                description=f"Cluster: {label}",
+            )
+        )
     return labels, events
+
 
 def update_ontology_with_events(repo: OntologyRepository, events: list):
     for e in events:
         repo.add_event(e)
+
 
 def etl_embedding_ml_pipeline(csv_path: str, repo: OntologyRepository):
     customers = load_customers_from_csv(csv_path)
@@ -263,9 +295,16 @@ def load_data_task():
     # 예시: CSV 등에서 데이터 적재
     # 실제 구현에서는 파일/DB/외부 API 등에서 데이터 로드
     return [
-        {"id": "pay1", "order_id": "order1", "amount": 10000, "method": "card", "status": "completed"},
-        {"id": "del1", "order_id": "order1", "address": "서울", "status": "delivered"}
+        {
+            "id": "pay1",
+            "order_id": "order1",
+            "amount": 10000,
+            "method": "card",
+            "status": "completed",
+        },
+        {"id": "del1", "order_id": "order1", "address": "서울", "status": "delivered"},
     ]
+
 
 @task
 def embedding_and_ontology_task(data):
@@ -280,6 +319,7 @@ def embedding_and_ontology_task(data):
         embedding_node(obj)
     return True
 
+
 @flow
 def add_ontology_from_etl_flow():
     data = load_data_task()
@@ -291,7 +331,5 @@ def add_ontology_from_etl_flow():
 if __name__ == "__main__":
     # Example usage
     csv_to_duckdb_flow(
-        csv_path="sample.csv",
-        table_name="example_table",
-        db_path="data.db"
-    ) 
+        csv_path="sample.csv", table_name="example_table", db_path="data.db"
+    )

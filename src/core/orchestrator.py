@@ -5,9 +5,17 @@ from src.agents.reviewer_agent import ReviewerAgent
 from src.agents.base_agent import AgentConfig
 from src.agents.self_improvement_agent import SelfImprovementAgent
 
+
 class Orchestrator:
     """멀티에이전트 오케스트레이션 담당"""
-    def __init__(self, planner_cfg: AgentConfig, dev_cfg: AgentConfig, rev_cfg: AgentConfig, selfimp_cfg: AgentConfig = None):
+
+    def __init__(
+        self,
+        planner_cfg: AgentConfig,
+        dev_cfg: AgentConfig,
+        rev_cfg: AgentConfig,
+        selfimp_cfg: AgentConfig = None,
+    ):
         self.planner = PlannerAgent(planner_cfg)
         self.developer = DeveloperAgent(dev_cfg)
         self.reviewer = ReviewerAgent(rev_cfg)
@@ -25,11 +33,7 @@ class Orchestrator:
             dev_result = await self.developer.process(task)
             # 3. Reviewer가 결과 검토
             review = await self.reviewer.process(dev_result)
-            results.append({
-                "task": task,
-                "dev_result": dev_result,
-                "review": review
-            })
+            results.append({"task": task, "dev_result": dev_result, "review": review})
         return {"results": results}
 
     async def run_self_improvement(self, input_data: Any = None) -> dict:
@@ -37,4 +41,4 @@ class Orchestrator:
         if not self.self_improver:
             raise RuntimeError("SelfImprovementAgent가 설정되지 않았습니다.")
         result = await self.self_improver.process(input_data)
-        return result 
+        return result

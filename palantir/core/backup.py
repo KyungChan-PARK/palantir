@@ -41,14 +41,12 @@ def backup_weaviate():
         fname = datetime.now().strftime("%Y%m%d")
         path = os.path.join(BACKUP_ROOT, fname)
         os.makedirs(path, exist_ok=True)
-        
+
         # Weaviate 백업 생성
         backup = client.backup.create(
-            backup_id=fname,
-            backend="filesystem",
-            include_classes=["*"]
+            backup_id=fname, backend="filesystem", include_classes=["*"]
         )
-        
+
         with open(os.path.join(path, "weaviate_snapshot.txt"), "w") as f:
             f.write("ok")
     except Exception as e:
@@ -62,14 +60,11 @@ def backup_neo4j():
         fname = datetime.now().strftime("%Y%m%d")
         path = os.path.join(BACKUP_ROOT, fname)
         os.makedirs(path, exist_ok=True)
-        
+
         # Neo4j 백업 실행
-        subprocess.run([
-            NEO4J_ADMIN,
-            "backup",
-            "--backup-dir", path,
-            "--name", fname
-        ], check=True)
+        subprocess.run(
+            [NEO4J_ADMIN, "backup", "--backup-dir", path, "--name", fname], check=True
+        )
     except Exception as e:
         notify_slack(f"Neo4j 백업 실패: {e}")
 

@@ -1,0 +1,6 @@
+tree 41169ed8ff8f64de8b922e2f82692d7e02e3bc63
+parent c6ca527177bf31bc118a2de1c411f846c34f62cc
+author Palantir Developer <palantir.dev@example.com> 1750043000 +0900
+committer Palantir Developer <palantir.dev@example.com> 1750043000 +0900
+
+가상환경 디렉토리 제외 및 .gitignore 설정

@@ -44,6 +44,7 @@ def user_tier_func(request: Any) -> str:
 
 def cache_response(ttl: int = 300):
     """응답을 캐시하는 데코레이터입니다."""
+
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -64,5 +65,7 @@ def cache_response(ttl: int = 300):
             result = await func(*args, **kwargs)
             await set_cache(cache_key, json.dumps(result), ttl)
             return result
+
         return wrapper
+
     return decorator

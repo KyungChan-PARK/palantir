@@ -16,6 +16,7 @@ _blacklist = set()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 
+
 class TokenData(BaseModel):
     username: Optional[str] = None
     scopes: list[str] = []
@@ -60,7 +61,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserDB:
         token_data = TokenData(username=username, scopes=payload.get("scopes", []))
     except JWTError:
         raise credentials_exception
-    
+
     user = UserDB.get_by_username(token_data.username)
     if user is None:
         raise credentials_exception
