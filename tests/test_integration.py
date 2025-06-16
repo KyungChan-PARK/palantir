@@ -5,9 +5,14 @@ from typing import Dict, List
 import pytest
 from fastapi.testclient import TestClient
 
-from palantir.core.agents.base import (AgentResult, AgentTask, DeveloperAgent,
-                                       PlannerAgent, ReviewerAgent,
-                                       SelfImproverAgent)
+from palantir.core.agents.base import (
+    AgentResult,
+    AgentTask,
+    DeveloperAgent,
+    PlannerAgent,
+    ReviewerAgent,
+    SelfImproverAgent,
+)
 from palantir.main import app
 from palantir.services.mcp.base import MCPContext, MCPResponse
 
