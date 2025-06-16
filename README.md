@@ -35,8 +35,6 @@ graph TD
 
 ### 요구사항
 
-- Docker
-- Docker Compose
 - Python 3.12+
 - Poetry
 
@@ -48,14 +46,17 @@ git clone https://github.com/yourusername/palantir.git
 cd palantir
 ```
 
-2. 의존성 설치:
+2. 가상환경 생성 및 의존성 설치:
 ```bash
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+pip install poetry
 poetry install
 ```
 
-3. Docker 컨테이너 실행:
+3. 서비스 실행:
 ```bash
-docker-compose up -d
+poetry run python main.py
 ```
 
 ### 환경 변수 설정
