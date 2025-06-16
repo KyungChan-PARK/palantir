@@ -1,0 +1,84 @@
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  standard:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  detailed:
+    format: "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+  json:
+    format: '{"timestamp": "%(asctime)s", "name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: standard
+    stream: ext://sys.stdout
+
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: logs/palantir.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+
+  error_file:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: detailed
+    filename: logs/error.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+
+  json_file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: logs/palantir.json
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+
+loggers:
+  palantir:
+    level: DEBUG
+    handlers: [console, file, error_file, json_file]
+    propagate: false
+
+  palantir.core:
+    level: DEBUG
+    handlers: [console, file, error_file]
+    propagate: false
+
+  palantir.services:
+    level: DEBUG
+    handlers: [console, file, error_file]
+    propagate: false
+
+  palantir.agents:
+    level: DEBUG
+    handlers: [console, file, error_file]
+    propagate: false
+
+  palantir.mcp:
+    level: DEBUG
+    handlers: [console, file, error_file]
+    propagate: false
+
+  palantir.security:
+    level: INFO
+    handlers: [file, error_file]
+    propagate: false
+
+  palantir.monitoring:
+    level: INFO
+    handlers: [console, json_file]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console, file] 

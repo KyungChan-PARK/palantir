@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+from pydantic import ConfigDict
 
 class Settings(BaseSettings):
     OFFLINE_MODE: bool = False
@@ -28,8 +29,16 @@ class Settings(BaseSettings):
     # 레이트 리미팅
     RATE_LIMIT_PER_MINUTE: int = 5
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    # MCP 설정
+    mcp_api_key: str = "test-mcp-key"
+    mcp_base_url: str = "http://localhost:8000"
+    openai_api_key: str = "test-openai-key"
+    db_path: str = "./data/agent.db"
+
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="allow"
+    )
 
 settings = Settings()

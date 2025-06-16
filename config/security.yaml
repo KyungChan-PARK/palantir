@@ -1,0 +1,135 @@
+# Palantir 보안 설정 파일
+
+# 인증 설정
+auth:
+  # JWT 설정
+  jwt:
+    secret_key: "${PALANTIR_JWT_SECRET}"
+    algorithm: "HS256"
+    access_token_expire: 3600  # 1시간
+    refresh_token_expire: 604800  # 7일
+
+  # 패스워드 정책
+  password:
+    min_length: 12
+    require_uppercase: true
+    require_lowercase: true
+    require_numbers: true
+    require_special: true
+    max_age: 90  # 90일
+    history: 5  # 이전 5개 비밀번호 재사용 금지
+
+  # 세션 설정
+  session:
+    timeout: 3600  # 1시간
+    max_sessions: 3
+    refresh_on_access: true
+
+# 접근 제어
+access_control:
+  # IP 제한
+  ip_restriction:
+    allowed_ips: []  # 빈 배열은 모든 IP 허용
+    blocked_ips: []
+    rate_limit: 100  # 초당 요청 수
+
+  # 역할 기반 접근 제어
+  roles:
+    admin:
+      - "all"
+    developer:
+      - "read:*"
+      - "write:code"
+      - "execute:tests"
+    reviewer:
+      - "read:*"
+      - "write:reviews"
+    user:
+      - "read:docs"
+      - "read:metrics"
+
+# API 보안
+api:
+  # API 키 설정
+  api_keys:
+    rotation_period: 90  # 90일
+    max_keys: 5
+    key_length: 32
+
+  # 요청 제한
+  rate_limiting:
+    default: 1000  # 시간당 요청 수
+    burst: 50  # 버스트 허용량
+    timeframe: 3600  # 1시간
+
+# 암호화
+encryption:
+  # 데이터 암호화
+  data:
+    algorithm: "AES-256-GCM"
+    key_rotation: 30  # 30일
+    backup_keys: 3
+
+  # 통신 암호화
+  transport:
+    ssl_version: "TLS1.3"
+    verify_cert: true
+    cert_path: "config/certs"
+
+# 감사 로깅
+audit:
+  # 로그 설정
+  logging:
+    enabled: true
+    level: "INFO"
+    retention: 365  # 1년
+    encrypt: true
+
+  # 이벤트 추적
+  events:
+    track_login: true
+    track_access: true
+    track_changes: true
+    track_errors: true
+
+# 취약점 스캔
+security_scan:
+  # 자동 스캔 설정
+  automated:
+    enabled: true
+    frequency: "daily"
+    types: ["dependency", "code", "config"]
+
+  # 의존성 검사
+  dependencies:
+    check_updates: true
+    block_vulnerable: true
+    grace_period: 7  # 7일
+
+# 백업 보안
+backup:
+  # 백업 암호화
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+    key_rotation: 90  # 90일
+
+  # 접근 제어
+  access:
+    restrict_restore: true
+    require_approval: true
+    allowed_roles: ["admin"]
+
+# 모니터링
+monitoring:
+  # 보안 이벤트
+  security_events:
+    alert_level: "WARNING"
+    notify_channels: ["email", "slack"]
+    retention: 90  # 90일
+
+  # 이상 탐지
+  anomaly_detection:
+    enabled: true
+    sensitivity: "medium"
+    learning_period: 7  # 7일 

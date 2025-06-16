@@ -1,3 +1,6 @@
+"""
+Core 패키지
+"""
 from . import (
     auth,
     backup,
@@ -22,6 +25,7 @@ from . import (
     visualization,
     weaviate_store,
 )
+from . import agents
 
 __all__ = [
     "preprocessor_factory",

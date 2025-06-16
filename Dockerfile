@@ -4,7 +4,7 @@ FROM python:3.12-slim
 # 작업 디렉토리 설정
 WORKDIR /app
 
-# 시스템 패키지 설치
+# 기본 도구 설치
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -13,30 +13,19 @@ RUN apt-get update && apt-get install -y \
 # Poetry 설치
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# 프로젝트 파일 복사
+# Poetry 설정
+ENV PATH="/root/.local/bin:$PATH"
+RUN poetry config virtualenvs.create false
+
+# 의존성 파일 복사 및 설치
 COPY pyproject.toml poetry.lock* ./
-COPY src/ ./src/
-COPY tests/ ./tests/
-COPY scripts/ ./scripts/
+RUN poetry install --without dev --no-interaction --no-ansi
 
-# 의존성 설치
-RUN ~/.local/bin/poetry config virtualenvs.create false \
-    && ~/.local/bin/poetry install --no-interaction --no-ansi --no-root
-
-# 환경 변수 설정
-ENV PYTHONPATH=/app
-ENV PYTHONUNBUFFERED=1
+# 소스 코드 복사
+COPY . .
 
 # 포트 설정
-EXPOSE 8000 8501 8080
+EXPOSE 8000
 
-# 실행 스크립트 복사
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# 진입점 설정
-ENTRYPOINT ["docker-entrypoint.sh"]
+# 실행 명령
+CMD ["poetry", "run", "uvicorn", "palantir.main:app", "--host", "0.0.0.0", "--port", "8000"]

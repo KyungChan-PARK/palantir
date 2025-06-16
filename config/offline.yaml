@@ -1,0 +1,97 @@
+# Palantir 오프라인 환경 설정 파일
+
+# 서버 설정
+server:
+  host: "localhost"
+  port: 8000
+  debug: true
+  workers: 2
+  timeout: 60
+
+# 데이터베이스 설정
+database:
+  type: "sqlite"
+  path: "users.db"
+  pool_size: 3
+  timeout: 60
+
+# 로깅 설정
+logging:
+  level: "DEBUG"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/palantir_offline.log"
+  max_size: 52428800  # 50MB
+  backup_count: 10
+
+# 보안 설정
+security:
+  secret_key: "offline_development_key"  # 개발용 키
+  token_expire: 86400  # 24시간
+  max_attempts: 10
+  lockout_time: 300
+
+# MCP 설정
+mcp:
+  llm:
+    default_model: "gpt-4"  # 오프라인 환경에서 사용 가능한 모델
+    timeout: 120
+    max_tokens: 4000
+    temperature: 0.7
+  file:
+    max_size: 52428800  # 50MB
+    allowed_types: ["py", "md", "txt", "yml", "yaml", "json", "db", "log"]
+  git:
+    remote: "local"
+    branch: "develop"
+    auto_push: false
+  test:
+    parallel: false  # 오프라인 환경에서는 병렬 테스트 비활성화
+    timeout: 600
+    coverage_min: 70
+  web:
+    timeout: 60
+    retry: 5
+    cache_time: 7200
+
+# 에이전트 설정
+agents:
+  planner:
+    timeout: 120
+    max_depth: 10
+  developer:
+    timeout: 240
+    max_files: 20
+  reviewer:
+    timeout: 120
+    checks: ["style", "security", "performance", "documentation"]
+  self_improver:
+    interval: 7200  # 2시간
+    metrics: ["accuracy", "speed", "memory", "coverage"]
+
+# 모니터링 설정
+monitoring:
+  prometheus:
+    port: 9090
+    retention_days: 15
+  grafana:
+    port: 3000
+    auth_disable: true
+  loki:
+    port: 3100
+    retention_days: 7
+
+# 백업 설정
+backup:
+  interval: 43200  # 12시간
+  keep_days: 60
+  compress: true
+  path: "backups/offline"
+
+# 오프라인 전용 설정
+offline:
+  cache_dir: "data/cache"
+  temp_dir: "data/temp"
+  model_dir: "data/models"
+  docs_dir: "data/docs"
+  enable_profiling: true
+  debug_mode: true 
