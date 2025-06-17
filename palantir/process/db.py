@@ -3,6 +3,7 @@
 import contextlib
 from pathlib import Path
 from typing import Generator, Optional
+import os
 
 import duckdb
 from prefect.logging import get_run_logger
@@ -10,7 +11,9 @@ from prefect.logging import get_run_logger
 
 @contextlib.contextmanager
 def get_duckdb_connection(
-    db_path: Optional[str] = None, read_only: bool = False
+    db_path: Optional[str] = None,
+    read_only: bool = False,
+    schema: Optional[str] = None,
 ) -> Generator[duckdb.DuckDBPyConnection, None, None]:
     """Context manager for DuckDB connections.
 
@@ -22,6 +25,8 @@ def get_duckdb_connection(
         DuckDB connection object.
     """
     logger = get_run_logger()
+    db_path = db_path or os.getenv("DUCKDB_PATH")
+    schema = schema or os.getenv("DUCKDB_SCHEMA")
 
     if db_path:
         path = Path(db_path)
@@ -31,19 +36,22 @@ def get_duckdb_connection(
 
     try:
         conn = duckdb.connect(db_path, read_only=read_only)
+        if schema:
+            conn.execute(f"SET schema '{schema}'")
         yield conn
     finally:
         conn.close()
         logger.info("DuckDB connection closed")
 
 
-def init_db(db_path: str) -> None:
+def init_db(db_path: Optional[str] = None) -> None:
     """Initialize the database with required tables and schemas.
 
     Args:
         db_path: Path to the database file.
     """
     logger = get_run_logger()
+    db_path = db_path or os.getenv("DUCKDB_PATH")
     logger.info(f"Initializing database at {db_path}")
 
     with get_duckdb_connection(db_path) as conn:

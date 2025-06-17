@@ -15,24 +15,52 @@ class EmbeddingPipeline:
         )
         self.collection = self.client.get_or_create_collection("project_docs")
 
-    def embed_files(self, file_patterns: List[str]) -> List[Dict]:
+    def embed_files(self, file_patterns: List[str], batch_size: int = 32) -> List[Dict]:
         """지정된 파일 패턴의 모든 파일을 임베딩하여 ChromaDB에 저장"""
         docs = []
+        batch_ids, batch_embs, batch_docs, batch_meta = [], [], [], []
+
+        existing = set()
+        try:
+            if self.collection.count() > 0:
+                existing.update(self.collection.get()["ids"])
+        except Exception:
+            pass
+
         for pattern in file_patterns:
             for file_path in glob.glob(pattern, recursive=True):
                 if not os.path.isfile(file_path):
                     continue
+                doc_id = os.path.relpath(file_path)
+                if doc_id in existing:
+                    continue
                 with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                     content = f.read()
                 embedding = self.model.encode(content)
-                doc_id = os.path.relpath(file_path)
-                self.collection.upsert(
-                    ids=[doc_id],
-                    embeddings=[embedding],
-                    documents=[content],
-                    metadatas=[{"file": doc_id}],
-                )
+
+                batch_ids.append(doc_id)
+                batch_embs.append(embedding)
+                batch_docs.append(content)
+                batch_meta.append({"file": doc_id})
                 docs.append({"file": doc_id, "len": len(content)})
+
+                if len(batch_ids) >= batch_size:
+                    self.collection.upsert(
+                        ids=batch_ids,
+                        embeddings=batch_embs,
+                        documents=batch_docs,
+                        metadatas=batch_meta,
+                    )
+                    batch_ids, batch_embs, batch_docs, batch_meta = [], [], [], []
+
+        if batch_ids:
+            self.collection.upsert(
+                ids=batch_ids,
+                embeddings=batch_embs,
+                documents=batch_docs,
+                metadatas=batch_meta,
+            )
+
         self.client.persist()
         return docs
 
