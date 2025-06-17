@@ -10,11 +10,9 @@ if not REQ.exists():
     print("requirements.txt not found", file=sys.stderr)
     sys.exit(1)
 
-cmd = [sys.executable, "-m", "pip", "install"]
+cmd = [sys.executable, "-m", "pip", "install", "-r", str(REQ)]
 if DEPS.exists():
-    cmd += ["--no-index", "--find-links", str(DEPS), "-r", str(REQ), "--extra-index-url", f"file://{DEPS.resolve()}"]
-else:
-    cmd += ["-r", str(REQ)]
+    cmd += ["--find-links", str(DEPS)]
 
 print("Running:", " ".join(cmd))
 subprocess.check_call(cmd)
