@@ -5,8 +5,12 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 from sklearn.metrics.pairwise import cosine_similarity
+import threading
+import os
 
 API_URL = "http://localhost:8000/ontology"
+
+LOG_STREAM_URL = os.getenv("LOG_STREAM_URL", "http://localhost:8000/logs/stream")
 
 
 def create_object_api(obj_type, data):
@@ -35,6 +39,28 @@ def recommend_similar_objects(obj_id, obj_type, top_k=5):
             sims.append((o, sim))
     sims.sort(key=lambda x: x[1], reverse=True)
     return sims[:top_k]
+
+
+def _log_listener():
+    """Background thread for streaming logs via SSE."""
+    try:
+        with requests.get(LOG_STREAM_URL, stream=True) as resp:
+            for line in resp.iter_lines():
+                if line:
+                    text = line.decode("utf-8")
+                    if text.startswith("data:"):
+                        text = text.split("data:", 1)[1].strip()
+                    st.session_state.setdefault("live_logs", []).append(text)
+                    st.session_state["live_logs"] = st.session_state["live_logs"][-200:]
+    except Exception as exc:
+        st.session_state.setdefault("live_logs", []).append(f"[error] {exc}")
+
+
+def start_log_stream():
+    if "log_thread" not in st.session_state:
+        thread = threading.Thread(target=_log_listener, daemon=True)
+        thread.start()
+        st.session_state.log_thread = thread
 
 
 st.title("Palantir AIP 에이전트 상태 대시보드")
@@ -110,8 +136,11 @@ if "ontology_df" in st.session_state:
 
 # 실시간 로그
 st.header("실시간 로그")
-if "log" in st.session_state:
-    st.text(st.session_state["log"])
+start_log_stream()
+log_box = st.empty()
+logs = st.session_state.get("live_logs", [])
+if logs:
+    log_box.text("\n".join(logs[-20:]))
 
 # 사용자 질의/분석
 st.header("온톨로지 질의/분석")

@@ -11,6 +11,8 @@ import streamlit as st
 import yfinance as yf
 from streamlit_option_menu import option_menu
 
+from .i18n import get_language, set_language, translate as _
+
 from palantir.analysis.analyzer import recommend_by_rules
 from palantir.analysis.recommender import recommend_with_news
 from palantir.ingest.feed_manager import (fetch_and_parse_feeds,
@@ -43,10 +45,17 @@ def initialize_session_state():
     if "selected_relationship" not in st.session_state:
         st.session_state.selected_relationship = None
 
+    if "lang" not in st.session_state:
+        st.session_state.lang = "en"
+
 
 def main():
     """Main application entry point."""
     st.set_page_config(page_title="기업 뉴스/지표 분석 대시보드", layout="wide")
+    try:
+        st.page("home", "Dashboard", icon="🏠")
+    except Exception:
+        pass
 
     # Initialize session state
     initialize_session_state()
@@ -76,33 +85,48 @@ def main():
         st.image("assets/logo.png", width=200)
         st.markdown("## Palantir AIP")
 
-        selected = option_menu(
-            menu_title=None,
-            options=[
-                "Chat Assistant",
-                "Data Explorer",
-                "Ontology Viewer",
-                "Insights",
-                "Settings",
-            ],
-            icons=["chat-dots", "search", "diagram-3", "graph-up", "gear"],
-            default_index=0,
+        lang = st.selectbox(
+            _("language_label"),
+            ["en", "ko"],
+            index=0 if get_language() == "en" else 1,
         )
+        set_language(lang)
+
+        try:
+            st.page("chat", _("chat_title"), icon="💬")
+            st.page("data", _("data_explorer_title"), icon="🔍")
+            st.page("ontology", _("ontology_viewer_title"), icon="🕸️")
+            st.page("insights", _("insights_title"), icon="💡")
+            st.page("settings", _("settings_title"), icon="⚙️")
+            selected = st.navigation()
+        except Exception:
+            selected = option_menu(
+                menu_title=None,
+                options=[
+                    _("chat_title"),
+                    _("data_explorer_title"),
+                    _("ontology_viewer_title"),
+                    _("insights_title"),
+                    _("settings_title"),
+                ],
+                icons=["chat-dots", "search", "diagram-3", "graph-up", "gear"],
+                default_index=0,
+            )
 
     # Main content
-    if selected == "Chat Assistant":
+    if selected in ("Chat Assistant", _("chat_title"), "chat"):
         chat.render_page()
 
-    elif selected == "Data Explorer":
+    elif selected in ("Data Explorer", _("data_explorer_title"), "data"):
         data_explorer.render_page()
 
-    elif selected == "Ontology Viewer":
+    elif selected in ("Ontology Viewer", _("ontology_viewer_title"), "ontology"):
         ontology_viewer.render_page()
 
-    elif selected == "Insights":
+    elif selected in ("Insights", _("insights_title"), "insights"):
         insights.render_page()
 
-    elif selected == "Settings":
+    elif selected in ("Settings", _("settings_title"), "settings"):
         settings.render_page()
 
     # 1. 종목 티커 입력 및 리셋 버튼

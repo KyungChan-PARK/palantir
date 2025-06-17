@@ -6,6 +6,12 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 import streamlit as st
+from ..i18n import translate as _
+
+try:
+    st.page("chat", _("chat_title"), icon="💬")
+except Exception:
+    pass
 
 from ...models.llm import ChatMessage, OntologyAssistant
 
@@ -103,7 +109,7 @@ def process_input(user_input: str):
 
 def render_page():
     """Render the chat assistant page."""
-    st.title("💬 Chat Assistant")
+    st.title("💬 " + _("chat_title"))
 
     st.markdown(
         """

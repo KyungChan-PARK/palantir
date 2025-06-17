@@ -11,9 +11,15 @@ import streamlit as st
 import yaml
 from cryptography.fernet import Fernet
 from pydantic import BaseModel, Field, validator
+from ..i18n import translate as _
 
 from ...config import Config
 from ...utils.encryption import decrypt_value, encrypt_value
+
+try:
+    st.page("settings", _("settings_title"), icon="⚙️")
+except Exception:
+    pass
 
 
 class APISettings(BaseModel):
@@ -628,7 +634,7 @@ def render_data_settings():
 
 def render_page():
     """Render the settings page."""
-    st.title("⚙️ Settings")
+    st.title("⚙️ " + _("settings_title"))
 
     st.markdown(
         """
