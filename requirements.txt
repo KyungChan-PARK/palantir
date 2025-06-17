@@ -67,3 +67,5 @@ types-psutil>=5.9.5.20231025
 llama-index>=0.10.0
 # apache-airflow==2.9.*
 protobuf<4
+promptfoo>=0.1.0
+coverage-badge>=1.1.0

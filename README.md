@@ -1,4 +1,5 @@
 # Palantir
+![coverage](coverage.svg)
 
 자가개선형 멀티에이전트 오케스트레이션 플랫폼
 

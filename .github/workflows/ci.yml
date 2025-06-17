@@ -35,5 +35,8 @@ jobs:
         poetry run flake8
         poetry run mypy .
         
-    - name: Run tests
-      run: poetry run pytest
+    - name: Run tests with coverage
+      run: |
+        poetry run pytest --cov=palantir --cov-report=xml
+        poetry run coverage-badge -o coverage.svg -f
+        poetry run promptfoo test promptfoo.yaml
