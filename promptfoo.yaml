@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: Palantir LLM evaluation scenarios
+
+prompts:
+  - 'Repeat: {{input}}'
+
+providers:
+  - id: file://tests/llm_eval/provider.py
+
+tests:
+  - vars:
+      input: sample1
+    assert:
+      - type: contains
+        value: sample1
+  - vars:
+      input: sample2
+    assert:
+      - type: contains
+        value: sample2
+  - vars:
+      input: sample3
+    assert:
+      - type: contains
+        value: sample3
+  - vars:
+      input: sample4
+    assert:
+      - type: contains
+        value: sample4
+  - vars:
+      input: sample5
+    assert:
+      - type: contains
+        value: sample5
+  - vars:
+      input: sample6
+    assert:
+      - type: contains
+        value: sample6
+  - vars:
+      input: sample7
+    assert:
+      - type: contains
+        value: sample7
+  - vars:
+      input: sample8
+    assert:
+      - type: contains
+        value: sample8
+  - vars:
+      input: sample9
+    assert:
+      - type: contains
+        value: sample9
+  - vars:
+      input: sample10
+    assert:
+      - type: contains
+        value: sample10
