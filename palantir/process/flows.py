@@ -3,11 +3,16 @@
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import os
 
 import chromadb
 import pandas as pd
 import requests
+import polars as pl
+import httpx
 from prefect import flow, task
+from prefect.schedules import CronSchedule
+from prefect_aws.s3 import S3Bucket
 from prefect.logging import get_run_logger
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
@@ -18,30 +23,53 @@ from palantir.ontology.repository import OntologyRepository, embedding_node
 
 
 @task
-def extract_csv(file_path: Path) -> pd.DataFrame:
+def extract_csv(file_path: Path) -> pl.DataFrame:
     """Extract data from CSV file."""
     logger = get_run_logger()
     logger.info(f"Extracting data from {file_path}")
-    return pd.read_csv(file_path)
+    return pl.read_csv(file_path)
 
 
 @task
-def transform_data(df: pd.DataFrame) -> pd.DataFrame:
+def extract_s3(key: str, block_name: str) -> pl.DataFrame:
+    """Download CSV data from S3 using Prefect block."""
+    logger = get_run_logger()
+    block = S3Bucket.load(block_name)
+    local_path = Path("/tmp") / Path(key).name
+    block.download_object_to_path(key, local_path)
+    logger.info(f"Downloaded {key} from S3")
+    return pl.read_csv(local_path)
+
+
+@task
+def extract_api(url: str) -> pl.DataFrame:
+    """Fetch JSON data from an HTTP API."""
+    logger = get_run_logger()
+    resp = httpx.get(url)
+    resp.raise_for_status()
+    data = resp.json()
+    return pl.DataFrame(data)
+
+
+@task
+def transform_data(df: pl.DataFrame) -> pl.DataFrame:
     """Transform the extracted data."""
     logger = get_run_logger()
     logger.info("Transforming data")
 
     # Add your transformation logic here
     # Example: Basic cleaning
-    df = df.dropna()
-    df = df.drop_duplicates()
+    df = df.drop_nulls()
+    df = df.unique()
 
     return df
 
 
 @task
 def load_to_duckdb(
-    df: pd.DataFrame, table_name: str, db_path: Optional[str] = None
+    df: pl.DataFrame,
+    table_name: str,
+    db_path: Optional[str] = None,
 ) -> None:
     """Load transformed data to DuckDB."""
     import duckdb
@@ -49,11 +77,16 @@ def load_to_duckdb(
     logger = get_run_logger()
     logger.info(f"Loading data to table {table_name}")
 
+    # Resolve DB path from env if not provided
+    db_path = db_path or os.getenv("DUCKDB_PATH")
+
     # Connect to DuckDB (in-memory if no path provided)
     conn = duckdb.connect(db_path) if db_path else duckdb.connect()
 
-    # Create table and load data
-    conn.execute(f"CREATE TABLE IF NOT EXISTS {table_name} AS SELECT * FROM df")
+    # Load dataframe (register temporary view to handle Polars)
+    conn.register("df_view", df.to_pandas())
+    conn.execute(f"CREATE TABLE IF NOT EXISTS {table_name} AS SELECT * FROM df_view")
+    conn.unregister("df_view")
     conn.close()
 
     logger.info("Data loaded successfully")
@@ -73,12 +106,34 @@ def csv_to_duckdb_flow(
     load_to_duckdb(transformed_data, table_name, db_path)
 
 
+@flow(
+    name="multi_source_to_duckdb",
+    retries=2,
+    retry_delay_seconds=30,
+    log_prints=True,
+    schedule=CronSchedule(cron="0 3 * * *"),
+)
+def multi_source_to_duckdb_flow(
+    s3_key: str,
+    api_url: str,
+    table_name: str,
+    db_path: Optional[str] = None,
+    s3_block: str = os.getenv("S3_BLOCK", "etl-bucket"),
+) -> None:
+    """ETL flow handling S3 and API sources."""
+    csv_df = extract_s3(s3_key, s3_block)
+    api_df = extract_api(api_url)
+    merged = pl.concat([csv_df, api_df], how="diagonal")
+    transformed = transform_data(merged)
+    load_to_duckdb(transformed, table_name, db_path)
+
+
 @task
-def load_to_sqlite(df: pd.DataFrame, table_name: str, db_path: str):
+def load_to_sqlite(df: pl.DataFrame, table_name: str, db_path: str):
     import sqlite3
 
     conn = sqlite3.connect(db_path)
-    df.to_sql(table_name, conn, if_exists="replace", index=False)
+    df.to_pandas().to_sql(table_name, conn, if_exists="replace", index=False)
     conn.close()
 
 
