@@ -33,7 +33,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 ## 8. 모니터링
 - Prometheus: /metrics, /metrics/self_improve
-- Grafana: docs/grafana_setup_win.md 참고
+ - Grafana: docs/guides/grafana_setup_win.md 참고
 - Loki/Promtail: docker-compose.loki.yaml 참고
 
 ## 9. 환경변수
