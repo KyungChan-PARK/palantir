@@ -1,15 +1,34 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .auth import get_password_hash
+from .auth import (
+    get_current_user,
+    get_password_hash,
+    require_role,
+)
 from .database import get_db
 from .user import UserDB
 
 router = APIRouter()
 
 
+@router.get("/users/me")
+def read_users_me(current_user: UserDB = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "scopes": current_user.scopes,
+    }
+
+
 @router.post("/users/", status_code=201)
-def create_user(user: dict, db: Session = Depends(get_db)):
+def create_user(
+    user: dict,
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(require_role("admin")),
+):
     if db.query(UserDB).filter(UserDB.username == user["username"]).first():
         raise HTTPException(status_code=400, detail="이미 사용 중인 사용자 이름입니다")
     db_user = UserDB(
@@ -32,7 +51,10 @@ def create_user(user: dict, db: Session = Depends(get_db)):
 
 
 @router.get("/users/")
-def list_users(db: Session = Depends(get_db)):
+def list_users(
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(require_role("admin")),
+):
     return [
         {
             "id": u.id,
@@ -46,7 +68,13 @@ def list_users(db: Session = Depends(get_db)):
 
 
 @router.get("/users/{user_id}")
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
+):
+    if current_user.id != user_id and "admin" not in (current_user.scopes or []):
+        raise HTTPException(status_code=403, detail="Forbidden")
     user = db.get(UserDB, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -60,7 +88,14 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/users/{user_id}")
-def update_user(user_id: int, user: dict, db: Session = Depends(get_db)):
+def update_user(
+    user_id: int,
+    user: dict,
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(get_current_user),
+):
+    if current_user.id != user_id and "admin" not in (current_user.scopes or []):
+        raise HTTPException(status_code=403, detail="Forbidden")
     db_user = db.get(UserDB, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -80,10 +115,15 @@ def update_user(user_id: int, user: dict, db: Session = Depends(get_db)):
 
 
 @router.delete("/users/{user_id}", status_code=204)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: UserDB = Depends(require_role("admin")),
+):
     user = db.get(UserDB, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     db.delete(user)
     db.commit()
     return None
+
