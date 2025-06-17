@@ -7,9 +7,6 @@ git commit
 git push
 git checkout
 git branch
-docker build
-docker-compose up
-docker-compose down
 
 [deny]
 rm -rf

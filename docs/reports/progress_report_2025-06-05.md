@@ -87,7 +87,7 @@
 
 ## 6. 문서 갱신 및 향후 작업
 
-- 본 보고서를 `docs/progress_report_2025-06-05.md` 로 버전관리.
+ - 본 보고서를 `docs/reports/progress_report_2025-06-05.md` 로 버전관리.
 - 위 개선 로드맵 진척 시 `README.md` Roadmap 섹션 업데이트.
 - 스프린트 종료 시 `CHANGELOG.md` 추가.
 
