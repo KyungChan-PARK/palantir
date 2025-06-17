@@ -2,6 +2,7 @@ import concurrent.futures
 
 from palantir.core.backup import notify_slack
 from palantir.core.context_manager import ContextManager
+from palantir.core.monitoring import agent_loop_total
 from palantir.models.state import (ImprovementHistory, OrchestratorState,
                                    TaskState)
 from palantir.services.mcp.file_mcp import FileMCP
@@ -37,6 +38,7 @@ class Orchestrator:
         self.context_manager = ContextManager()
 
     def run(self, user_input: str):
+        agent_loop_total.inc()
         try:
             print(f"[Planner] 사용자 요구: {user_input}")
             state = OrchestratorState(plan=[])

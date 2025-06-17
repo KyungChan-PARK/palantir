@@ -24,7 +24,19 @@ datasources:
 ```
 - Grafana 재시작 시 자동 인식
 
-## 4. /health API 확인
+## 4. 대시보드 JSON 프로비저닝
+- `C:\palantir\grafana\conf\provisioning\dashboards\palantir.yaml` 생성
+```yaml
+apiVersion: 1
+providers:
+  - name: palantir
+    type: file
+    options:
+      path: C:\palantir\grafana\dashboards
+```
+- `grafana/dashboards` 폴더의 JSON 파일을 위 디렉터리에 복사하면 자동 로드됩니다.
+
+## 5. /health API 확인
 ```bash
 curl http://localhost:3000/api/health
 ```

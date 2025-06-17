@@ -1,4 +1,9 @@
+from apscheduler.schedulers.background import BackgroundScheduler
+
+
 class DummyScheduler:
+    """Fallback scheduler used during testing."""
+
     def __init__(self):
         self.jobs = []
 
@@ -7,7 +12,12 @@ class DummyScheduler:
 
 
 def add_pipeline_job(dag):
-    pass
+    """Schedule pipeline execution (placeholder)."""
+    print(f"[SCHEDULED] DAG: {dag.get('dag_name')}")
 
 
-scheduler = DummyScheduler()
+try:
+    scheduler = BackgroundScheduler()
+    scheduler.start()
+except Exception:  # pragma: no cover - APScheduler optional
+    scheduler = DummyScheduler()
