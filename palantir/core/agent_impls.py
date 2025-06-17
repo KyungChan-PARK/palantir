@@ -6,7 +6,7 @@ import ast
 import json
 import os
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .base import BaseAgent
 from .mcp import LLMMCP, FileMCP, GitMCP, TestMCP
@@ -53,10 +53,14 @@ class PlannerAgent(BaseAgent):
         try:
             tasks = ast.literal_eval(response.strip())
             if isinstance(tasks, list):
-                return tasks
+                return [str(t).strip() for t in tasks if str(t).strip()]
         except Exception:
             pass
-        return [response.strip()]
+
+        # 리스트 형태가 아니면 줄바꿈 기준으로 분해
+        lines = [line.strip("- •") for line in response.strip().splitlines()]
+        tasks = [line for line in lines if line]
+        return tasks
 
 
 class DeveloperAgent(BaseAgent):
@@ -244,9 +248,7 @@ class SelfImprovementAgent(BaseAgent):
                 rollbacked = True
                 rollback_reason = f"SyntaxError: {str(e)}"
                 if history:
-                    history.append(
-                        f"[SelfImprover] 문법 오류로 롤백: {rollback_reason}"
-                    )
+                    history.append(f"[SelfImprover] 문법 오류로 롤백: {rollback_reason}")
                 continue
 
             self.file.write_file(file_path, improved_code)
@@ -259,9 +261,7 @@ class SelfImprovementAgent(BaseAgent):
                 rollbacked = True
                 rollback_reason = f"TestFailed: {test_result}"
                 if history:
-                    history.append(
-                        f"[SelfImprover] 테스트 실패로 롤백: {rollback_reason}"
-                    )
+                    history.append(f"[SelfImprover] 테스트 실패로 롤백: {rollback_reason}")
 
             # 롤백이 없을 때만 백업 삭제
             if os.path.exists(backup_path) and not rollbacked:
