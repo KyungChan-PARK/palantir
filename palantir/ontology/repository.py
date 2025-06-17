@@ -1,196 +1,162 @@
-"""Ontology graph repository using NetworkX."""
+"""Ontology repository with DuckDB, graph backend and embedding store."""
 
-from typing import Any, Dict, List, Optional, Type, TypeVar
+from __future__ import annotations
+
+import json
+import os
+from typing import Any, Optional, Type, TypeVar
 from uuid import UUID
 
-import chromadb
+import duckdb
 import networkx as nx
-from chromadb.utils import embedding_functions
-from pydantic import BaseModel
-
-from palantir.ontology.objects import Delivery, Event, Payment
+from neo4j import GraphDatabase
 
 from .base import OntologyLink, OntologyObject
+from .embedding_store import EmbeddingStore
 
 T = TypeVar("T", bound=OntologyObject)
 
-CHROMA_DATA_PATH = "chroma_data/"
-embed_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="all-MiniLM-L6-v2"
-)
-client = chromadb.PersistentClient(path=CHROMA_DATA_PATH)
-collection = client.create_collection(name="ontology", embedding_function=embed_fn)
-
 
 class OntologyRepository:
-    """Repository for managing ontology objects and their relationships."""
+    """Manage ontology objects with sync across stores."""
 
-    def __init__(self):
-        """Initialize an empty ontology graph."""
-        self.graph = nx.MultiDiGraph()
+    def __init__(self, backend: str = "networkx", db_path: str = "ontology.db") -> None:
+        self.embeddings = EmbeddingStore()
+        self.conn = duckdb.connect(db_path)
+        self._init_tables()
+        self.backend = backend
+        if backend == "neo4j":
+            url = os.getenv("NEO4J_URL", "bolt://localhost:7687")
+            user = os.getenv("NEO4J_USER", "neo4j")
+            pw = os.getenv("NEO4J_PASS", "test")
+            self.driver = GraphDatabase.driver(url, auth=(user, pw))
+        else:
+            self.graph = nx.MultiDiGraph()
 
-    def add_object(self, obj: OntologyObject) -> None:
-        """Add an object to the ontology graph.
-
-        Args:
-            obj: The ontology object to add.
-        """
-        self.graph.add_node(
-            obj.id,
-            type=obj.type,
-            data=obj.dict(),
-            created_at=obj.created_at,
-            updated_at=obj.updated_at,
+    def _init_tables(self) -> None:
+        self.conn.execute(
+            "CREATE TABLE IF NOT EXISTS objects(id VARCHAR PRIMARY KEY, type VARCHAR, data JSON)"
+        )
+        self.conn.execute(
+            "CREATE TABLE IF NOT EXISTS links(id VARCHAR, source_id VARCHAR, target_id VARCHAR, type VARCHAR, data JSON)"
         )
 
-    def add_link(self, link: OntologyLink) -> None:
-        """Add a relationship between two objects.
+    def close(self) -> None:
+        if hasattr(self, "driver"):
+            self.driver.close()
+        self.conn.close()
 
-        Args:
-            link: The relationship to add.
-        """
-        self.graph.add_edge(
-            link.source_id,
-            link.target_id,
-            key=link.id,
-            type=link.relationship_type,
-            data=link.dict(),
-            created_at=link.created_at,
+    def add_object(self, obj: OntologyObject) -> None:
+        if self.backend == "neo4j":
+            with self.driver.session() as session:
+                session.run(
+                    "MERGE (n:Ontology {id: $id}) SET n.type=$type, n.data=$data",
+                    id=str(obj.id),
+                    type=obj.type,
+                    data=json.dumps(obj.dict()),
+                )
+        else:
+            self.graph.add_node(
+                obj.id,
+                type=obj.type,
+                data=obj.dict(),
+                created_at=obj.created_at,
+                updated_at=obj.updated_at,
+            )
+        self.conn.execute(
+            "INSERT OR REPLACE INTO objects VALUES (?, ?, ?)",
+            [str(obj.id), obj.type, json.dumps(obj.dict())],
+        )
+        text = (
+            obj.properties.get("description")
+            if isinstance(obj.properties, dict)
+            else None
+        )
+        text = text or getattr(obj, "description", str(obj))
+        self.embeddings.add(str(obj.id), text, {"type": obj.type})
+
+    def add_link(self, link: OntologyLink) -> None:
+        if self.backend == "neo4j":
+            with self.driver.session() as session:
+                session.run(
+                    "MATCH (a {id:$src}),(b {id:$tgt}) MERGE (a)-[r:%s {id:$id}]->(b) SET r.data=$data"
+                    % link.relationship_type,
+                    src=str(link.source_id),
+                    tgt=str(link.target_id),
+                    id=str(link.id),
+                    data=json.dumps(link.dict()),
+                )
+        else:
+            self.graph.add_edge(
+                link.source_id,
+                link.target_id,
+                key=link.id,
+                type=link.relationship_type,
+                data=link.dict(),
+                created_at=link.created_at,
+            )
+        self.conn.execute(
+            "INSERT INTO links VALUES (?, ?, ?, ?, ?)",
+            [
+                str(link.id),
+                str(link.source_id),
+                str(link.target_id),
+                link.relationship_type,
+                json.dumps(link.dict()),
+            ],
         )
 
     def get_object(self, obj_id: UUID, model_cls: Type[T]) -> Optional[T]:
-        """Get an object by its ID.
-
-        Args:
-            obj_id: The ID of the object to retrieve.
-            model_cls: The Pydantic model class to deserialize to.
-
-        Returns:
-            The object if found, None otherwise.
-        """
-        if not self.graph.has_node(obj_id):
-            return None
-
-        node_data = self.graph.nodes[obj_id]["data"]
-        return model_cls(**node_data)
-
-    def get_linked_objects(
-        self,
-        obj_id: UUID,
-        relationship_type: Optional[str] = None,
-        direction: str = "out",
-    ) -> List[Dict[str, Any]]:
-        """Get objects linked to the given object.
-
-        Args:
-            obj_id: The ID of the object to get links for.
-            relationship_type: Optional filter for relationship type.
-            direction: 'out' for outgoing links, 'in' for incoming links.
-
-        Returns:
-            List of linked objects with their relationship data.
-        """
-        if direction == "out":
-            edges = self.graph.out_edges(obj_id, data=True, keys=True)
-            get_other_node = lambda e: e[1]  # target node
-        else:
-            edges = self.graph.in_edges(obj_id, data=True, keys=True)
-            get_other_node = lambda e: e[0]  # source node
-
-        results = []
-        for edge in edges:
-            edge_data = edge[3]  # edge data dictionary
-            if relationship_type and edge_data["type"] != relationship_type:
-                continue
-
-            other_node = get_other_node(edge)
-            node_data = self.graph.nodes[other_node]["data"]
-
-            results.append({"object": node_data, "relationship": edge_data})
-
-        return results
+        if self.backend == "neo4j":
+            with self.driver.session() as session:
+                rec = session.run(
+                    "MATCH (n {id:$id}) RETURN n.data AS d", id=str(obj_id)
+                ).single()
+                if not rec:
+                    return None
+                data = json.loads(rec["d"])
+                return model_cls(**data)
+        if self.graph.has_node(obj_id):
+            node_data = self.graph.nodes[obj_id]["data"]
+            return model_cls(**node_data)
+        return None
 
     def update_object(self, obj: OntologyObject) -> None:
-        """Update an existing object.
-
-        Args:
-            obj: The object with updated data.
-        """
-        if not self.graph.has_node(obj.id):
-            raise ValueError(f"Object with ID {obj.id} not found")
-
-        self.graph.nodes[obj.id].update(
-            {"data": obj.dict(), "updated_at": obj.updated_at}
-        )
+        self.add_object(obj)
 
     def delete_object(self, obj_id: UUID) -> None:
-        """Delete an object and all its relationships.
-
-        Args:
-            obj_id: The ID of the object to delete.
-        """
-        if not self.graph.has_node(obj_id):
-            raise ValueError(f"Object with ID {obj_id} not found")
-
-        self.graph.remove_node(obj_id)
+        if self.backend == "neo4j":
+            with self.driver.session() as session:
+                session.run("MATCH (n {id:$id}) DETACH DELETE n", id=str(obj_id))
+        else:
+            if not self.graph.has_node(obj_id):
+                raise ValueError(f"Object with ID {obj_id} not found")
+            self.graph.remove_node(obj_id)
+        self.conn.execute("DELETE FROM objects WHERE id=?", [str(obj_id)])
 
     def search_objects(
         self,
         obj_type: Optional[str] = None,
-        properties: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
-        """Search for objects matching the given criteria.
-
-        Args:
-            obj_type: Optional filter for object type.
-            properties: Optional dictionary of property values to match.
-
-        Returns:
-            List of matching objects.
-        """
+        properties: Optional[dict[str, Any]] = None,
+    ) -> list[dict[str, Any]]:
         results = []
-
-        for node_id in self.graph.nodes():
-            node_data = self.graph.nodes[node_id]["data"]
-
-            if obj_type and node_data["type"] != obj_type:
-                continue
-
+        query = "SELECT data FROM objects"
+        conds = []
+        params: list[Any] = []
+        if obj_type:
+            conds.append("type=?")
+            params.append(obj_type)
+        if conds:
+            query += " WHERE " + " AND ".join(conds)
+        for row in self.conn.execute(query, params).fetchall():
+            data = json.loads(row[0])
             if properties:
                 match = True
-                for key, value in properties.items():
-                    if key not in node_data or node_data[key] != value:
+                for k, v in properties.items():
+                    if data.get(k) != v:
                         match = False
                         break
                 if not match:
                     continue
-
-            results.append(node_data)
-
+            results.append(data)
         return results
-
-
-# 온톨로지 노드 임베딩 및 저장
-def embedding_node(node):
-    doc = node.description if hasattr(node, "description") else str(node)
-    collection.add(
-        documents=[doc],
-        metadatas=[{"name": getattr(node, "id", None), "type": type(node).__name__}],
-        ids=[getattr(node, "id", None)],
-    )
-
-
-# 유사 노드 검색
-def query_similar_nodes(query_text, n_results=5):
-    results = collection.query(query_texts=[query_text], n_results=n_results)
-    return results
-
-
-# 관계 확장(직접 연결된 노드 ID 반환)
-def expand_related_nodes(node, ontology_nodes: dict):
-    related = []
-    if hasattr(node, "related_ids"):
-        for rid in getattr(node, "related_ids", []):
-            if rid in ontology_nodes:
-                related.append(ontology_nodes[rid])
-    return related
