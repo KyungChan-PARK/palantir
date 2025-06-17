@@ -1,0 +1,18 @@
+{
+  "en": {
+    "chat_title": "Chat Assistant",
+    "data_explorer_title": "Data Explorer",
+    "ontology_viewer_title": "Ontology Viewer",
+    "insights_title": "Insights",
+    "settings_title": "Settings",
+    "language_label": "Language"
+  },
+  "ko": {
+    "chat_title": "챗 어시스턴트",
+    "data_explorer_title": "데이터 탐색기",
+    "ontology_viewer_title": "온톨로지 뷰어",
+    "insights_title": "인사이트",
+    "settings_title": "설정",
+    "language_label": "언어"
+  }
+}

@@ -12,6 +12,7 @@ import streamlit as st
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from ..i18n import translate as _
 
 from ...analytics.forecasting import TimeSeriesForecaster
 from ...analytics.metrics import calculate_metrics
@@ -23,6 +24,18 @@ repo = OntologyRepository()
 processor = ObjectProcessor()
 enricher = DataEnricher()
 forecaster = TimeSeriesForecaster()
+
+try:
+    st.page("insights", _("insights_title"), icon="💡")
+except Exception:
+    pass
+
+
+@st.cache_data
+def run_pca(data: pd.DataFrame) -> np.ndarray:
+    """Run 2D PCA and return components."""
+    pca = PCA(n_components=2)
+    return pca.fit_transform(data)
 
 
 def render_object_insights():
@@ -121,8 +134,7 @@ def render_object_insights():
                 clusters = kmeans.fit_predict(X)
 
                 # Reduce dimensionality for visualization
-                pca = PCA(n_components=2)
-                X_pca = pca.fit_transform(X)
+                X_pca = run_pca(X)
 
                 # Create clustering visualization
                 cluster_df = pd.DataFrame(
@@ -459,7 +471,7 @@ def render_relationship_insights():
 
 def render_page():
     """Render the insights page."""
-    st.title("💡 Insights")
+    st.title("💡 " + _("insights_title"))
 
     st.markdown(
         """

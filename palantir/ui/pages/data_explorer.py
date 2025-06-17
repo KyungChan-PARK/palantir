@@ -8,6 +8,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from ..i18n import translate as _
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
@@ -15,11 +16,17 @@ from ...analytics.metrics import calculate_metrics
 from ...models.llm import QueryGenerator
 from ...ontology.repository import OntologyRepository
 
+try:
+    st.page("data", _("data_explorer_title"), icon="🔍")
+except Exception:
+    pass
+
 # Initialize components
 repo = OntologyRepository()
 query_gen = QueryGenerator()
 
 
+@st.cache_data
 def prepare_visualization_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str]]:
     """Prepare data for visualization.
 
@@ -41,6 +48,7 @@ def prepare_visualization_data(df: pd.DataFrame) -> Tuple[pd.DataFrame, List[str
     return df, numeric_cols
 
 
+@st.cache_data
 def create_correlation_heatmap(df: pd.DataFrame, numeric_cols: List[str]) -> go.Figure:
     """Create correlation heatmap.
 
@@ -65,6 +73,7 @@ def create_correlation_heatmap(df: pd.DataFrame, numeric_cols: List[str]) -> go.
     )
 
 
+@st.cache_data
 def create_pca_visualization(df: pd.DataFrame, numeric_cols: List[str]) -> go.Figure:
     """Create PCA visualization.
 
@@ -331,7 +340,7 @@ def render_filters_section():
 
 def render_page():
     """Render the data explorer page."""
-    st.title("🔍 Data Explorer")
+    st.title("🔍 " + _("data_explorer_title"))
 
     st.markdown(
         """

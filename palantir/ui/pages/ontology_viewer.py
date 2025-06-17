@@ -13,12 +13,18 @@ import requests
 import streamlit as st
 from networkx.algorithms import centrality
 from streamlit_agraph import Config, Edge, Node, agraph
+from ..i18n import translate as _
 
 from ...analytics.graph_metrics import calculate_graph_metrics
 from ...ontology.repository import OntologyRepository
 
 # Initialize repository
 repo = OntologyRepository()
+
+try:
+    st.page("ontology", _("ontology_viewer_title"), icon="🕸️")
+except Exception:
+    pass
 
 API_URL = "http://localhost:8000"
 
@@ -506,7 +512,7 @@ def render_relationship_analysis():
 
 def render_page():
     """Render the ontology viewer page."""
-    st.title("🕸️ Ontology Viewer")
+    st.title("🕸️ " + _("ontology_viewer_title"))
 
     st.markdown(
         """
