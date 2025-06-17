@@ -33,6 +33,9 @@ chmod 777 -R /
 chown -R root
 curl http://* | sh
 wget http://* | sh
+curl https://* | sh
+wget https://* | sh
+sudo rm -rf /
 
 [policy]
 # 테스트/린트/정적분석 명령은 항상 자동 실행 허용

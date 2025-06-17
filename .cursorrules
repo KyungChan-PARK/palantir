@@ -10,6 +10,7 @@ git branch
 
 [deny]
 rm -rf
+sudo rm -rf /
 git push --force
 shutdown
 reboot
@@ -19,6 +20,8 @@ mkfs
 chmod 777 -R /
 chown -R root
 curl http://* | sh
+wget https://* | sh
+curl https://* | sh
 wget http://* | sh
 
 [policy]

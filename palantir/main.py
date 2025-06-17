@@ -7,6 +7,8 @@ from palantir.api.pipeline import router as pipeline_router
 from palantir.api.report import router as report_router
 from palantir.api.status import router as status_router
 from palantir.api.upload import router as upload_router
+from palantir.api.auth import router as auth_router
+from palantir.core.user_api import router as user_router
 
 app = FastAPI()
 
@@ -23,3 +25,5 @@ app.include_router(pipeline_router)
 app.include_router(report_router)
 app.include_router(status_router)
 app.include_router(upload_router)
+app.include_router(auth_router)
+app.include_router(user_router)
