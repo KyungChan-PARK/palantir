@@ -6,11 +6,26 @@ import logging
 import os
 from typing import Any, Dict, List
 
-import psutil
-from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi import (
+    Depends,
+    FastAPI,
+    HTTPException,
+    Security,
+    WebSocket,
+    WebSocketDisconnect,
+    Request,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
+from fastapi.responses import JSONResponse, Response
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 from pydantic import BaseModel
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+import psutil
 
 from src.agents.base_agent import AgentConfig
 from src.core.mcp import MCP, MCPConfig
@@ -26,6 +41,15 @@ app = FastAPI(
     description="AI 에이전트 관리 및 실행을 위한 API",
     version="1.0.0",
 )
+
+# Rate limiting setup
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    lambda request, exc: JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"}),
+)
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS 설정
 app.add_middleware(
@@ -101,7 +125,7 @@ async def startup_event():
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello, World!"}
+    return {"message": "AI Agent API is running"}
 
 
 @app.get("/status")
@@ -130,8 +154,11 @@ async def execute_command(
 
 
 @app.post("/agents")
+@limiter.limit("10/minute")
 async def register_agent(
-    registration: AgentRegistration, api_key: str = Depends(verify_api_key)
+    request: Request,
+    registration: AgentRegistration,
+    api_key: str = Depends(verify_api_key),
 ):
     """에이전트 등록"""
     config = MCPConfig(api_key=app.state.api_key, base_url=app.state.base_url)
@@ -145,13 +172,26 @@ async def register_agent(
 
 
 @app.get("/agents")
-async def list_agents(api_key: str = Depends(verify_api_key)):
+@limiter.limit("10/minute")
+async def list_agents(request: Request, api_key: str = Depends(verify_api_key)):
     """샘플 에이전트 목록 직접 반환"""
     return [
         {"name": "Planner", "description": "Task Planner", "model": "gpt-4"},
         {"name": "Developer", "description": "코드 생성", "model": "gpt-4"},
         {"name": "Reviewer", "description": "코드 검토", "model": "gpt-4"},
     ]
+
+
+@app.websocket("/agents/stream")
+async def agents_stream(websocket: WebSocket):
+    """Simple echo WebSocket stream for agents"""
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"received: {data}")
+    except WebSocketDisconnect:
+        logger.info("WebSocket disconnected")
 
 
 @app.post("/orchestrate")
@@ -330,3 +370,10 @@ async def self_improve_rollback(
     agent = orchestrator.self_improver
     result = await agent.rollback_improvement(request.file, request.timestamp)
     return result
+
+
+@app.get("/metrics")
+async def metrics() -> Response:
+    """Expose Prometheus metrics"""
+    content = generate_latest()
+    return Response(content=content, media_type=CONTENT_TYPE_LATEST)
