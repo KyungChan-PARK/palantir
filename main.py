@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from neo4j import GraphDatabase
 
 from palantir.api.ask import router as ask_router
+from palantir.api.qa import router as qa_router
 from palantir.api.metrics import router as metrics_router
 from palantir.api.ontology import router as ontology_router
 from palantir.api.pipeline import router as pipeline_router
@@ -37,6 +38,7 @@ setup_monitoring(app)
 # 라우터 등록
 app.include_router(pipeline_router)
 app.include_router(ask_router)
+app.include_router(qa_router)
 app.include_router(ontology_router)
 app.include_router(auth_router)
 app.include_router(metrics_router)

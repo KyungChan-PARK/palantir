@@ -13,11 +13,10 @@ from streamlit_option_menu import option_menu
 
 from palantir.analysis.analyzer import recommend_by_rules
 from palantir.analysis.recommender import recommend_with_news
-from palantir.ingest.feed_manager import (fetch_and_parse_feeds,
-                                          filter_news_by_ticker)
+from palantir.ingest.feed_manager import fetch_and_parse_feeds, filter_news_by_ticker
 from palantir.ingest.metrics_fetcher import fetch_metrics_by_ticker
 
-from .pages import chat, data_explorer, insights, ontology_viewer, settings
+from .pages import chat, data_explorer, insights, ontology_viewer, settings, qa
 
 # 피드백 로그 파일 경로
 FEEDBACK_LOG = os.path.abspath(
@@ -80,18 +79,29 @@ def main():
             menu_title=None,
             options=[
                 "Chat Assistant",
+                "Retrieval QA",
                 "Data Explorer",
                 "Ontology Viewer",
                 "Insights",
                 "Settings",
             ],
-            icons=["chat-dots", "search", "diagram-3", "graph-up", "gear"],
+            icons=[
+                "chat-dots",
+                "question-circle",
+                "search",
+                "diagram-3",
+                "graph-up",
+                "gear",
+            ],
             default_index=0,
         )
 
     # Main content
     if selected == "Chat Assistant":
         chat.render_page()
+
+    elif selected == "Retrieval QA":
+        qa.render_page()
 
     elif selected == "Data Explorer":
         data_explorer.render_page()

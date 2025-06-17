@@ -42,3 +42,15 @@ class LLMMCP:
                 return f"[LLM 오류] {str(e)}"
         # TODO: Azure/로컬 등 확장
         return "(LLM 응답 예시)"
+
+    def retrieval_qa(self, question: str, vectorstore) -> str:
+        """주어진 벡터스토어에서 컨텍스트를 검색해 답변을 생성한다."""
+        from langchain.vectorstores.base import VectorStore
+
+        if not isinstance(vectorstore, VectorStore):
+            raise TypeError("vectorstore must be a langchain VectorStore")
+
+        docs = vectorstore.similarity_search(question, k=3)
+        context = "\n\n".join([d.page_content for d in docs])
+        prompt = f"Context:\n{context}\n\nQuestion: {question}"
+        return self.generate(prompt)
