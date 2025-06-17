@@ -22,7 +22,7 @@ A. FastAPI 서버가 정상적으로 실행 중인지 확인하고, API URL(`htt
 A. .cursorrules 정책에 따라 `rm -rf`, `git push --force` 등 위험 명령은 차단됩니다. 3회 연속 실패 시 자동 중단 및 Planner가 재계획합니다. 정책 위반 시 즉시 차단 및 Slack/이메일 등으로 알림이 전송됩니다.
 
 **Q. 인증/권한 관리는 어떻게 하나요?**
-A. JWT 기반 인증/권한 관리가 적용되어 있습니다. 운영 정책 및 POLICY.md 참고.
+A. JWT 기반 인증/권한 관리가 적용되어 있습니다. 운영 정책은 `../references/POLICY.md`를 참고하세요.
 
 **Q. 운영 자동화/모니터링은 어떻게 하나요?**
 A. run_all.sh로 FastAPI, Streamlit, Prefect를 한 번에 실행할 수 있습니다. Prometheus, Grafana, docker-compose 등으로 상태/이벤트/로그를 모니터링하며, 주요 이벤트/정책 위반은 실시간 대시보드 및 알림으로 연동됩니다.
@@ -38,4 +38,4 @@ A. `pytest -v`로 전체 테스트를 실행할 수 있습니다. Prefect Flow, 
 ## 5. 기타
 
 **Q. 실전 활용/운영/확장/테스트/보안/정책 등 더 자세한 가이드는 어디서 볼 수 있나요?**
-A. README, AGENTS.md, ai_agent_self_improvement.md, POLICY.md, USAGE_EXAMPLES.md, CONTRIBUTING.md, docs/ 폴더를 참고하세요. 
+A. README, AGENTS.md, ai_agent_self_improvement.md, `../references/POLICY.md`, `USAGE_EXAMPLES.md`, CONTRIBUTING.md, docs/ 폴더를 참고하세요
