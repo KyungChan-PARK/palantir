@@ -1,5 +1,4 @@
-"""
-context_manager.py
+"""context_manager.py
 - 멀티에이전트 계층형 컨텍스트/메모리 관리 모듈(스텁)
 - 각 에이전트별 개별 컨텍스트 + 글로벌(공유) 컨텍스트 계층화
 - 태스크/실패/정책/외부지식/온톨로지 등 다양한 컨텍스트 관리
@@ -44,8 +43,7 @@ class ContextManager:
         self.external_knowledge[key] = value
 
     def merge_contexts(self, agent_name: str) -> Dict[str, Any]:
-        """
-        에이전트별 컨텍스트 + 글로벌 컨텍스트 + 외부지식 등 계층적으로 병합
+        """에이전트별 컨텍스트 + 글로벌 컨텍스트 + 외부지식 등 계층적으로 병합
         (실제 병합 정책/우선순위/필터링 등은 후속 구현)
         """
         merged = dict(self.global_context)

@@ -1,12 +1,11 @@
-"""
-에이전트 모듈
-"""
+"""에이전트 모듈"""
 
 import ast
 import json
 import os
+import re
 import shutil
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .base import BaseAgent
 from .mcp import LLMMCP, FileMCP, GitMCP, TestMCP
@@ -26,37 +25,45 @@ class PlannerAgent(BaseAgent):
         alerts = state.get("alerts") if state else None
         external_knowledge = state.get("external_knowledge") if state else None
 
-        prompt = f"""
-        [역할] 당신은 Constitutional AI 기반 프로젝트 매니저(Planner)입니다.
-        [목표] 사용자의 요구를 안전하고 신뢰성 있게 단계별 태스크 리스트로 분해하세요.
-        [행동지침]
-        - 각 태스크는 한 문장으로 명확하게 작성
-        - 각 태스크는 테스트/검증 단계를 반드시 포함
-        - 실패/반복/정책 이력이 있으면 반드시 반영해 재계획
-        - 예시: ['데이터 파일 로드', '전처리', '분석 코드 작성', '결과 리포트 생성']
-        사용자 요구: {user_input}
-        """
+        # 우선 간단한 규칙 기반 파싱 시도
+        tokens = [t.strip() for t in re.split(r"[\n.;]", user_input) if t.strip()]
+        if len(tokens) > 1:
+            tasks = tokens
+        else:
+            prompt = f"""
+            [역할] 당신은 Constitutional AI 기반 프로젝트 매니저(Planner)입니다.
+            [목표] 사용자의 요구를 안전하고 신뢰성 있게 단계별 태스크 리스트로 분해하세요.
+            [행동지침]
+            - 각 태스크는 한 문장으로 명확하게 작성
+            - 각 태스크는 테스트/검증 단계를 반드시 포함
+            - 실패/반복/정책 이력이 있으면 반드시 반영해 재계획
+            - 예시: ['데이터 파일 로드', '전처리', '분석 코드 작성', '결과 리포트 생성']
+            사용자 요구: {user_input}
+            """
 
-        if fail_reason:
-            prompt += f"\n[실패/에러/이유] {fail_reason}"
-        if fail_history:
-            prompt += f"\n[실패 이력] {fail_history}"
-        if alerts:
-            prompt += f"\n[정책/알림 이력] {alerts}"
-        if external_knowledge:
-            prompt += f"\n[외부지식/온톨로지] {external_knowledge}"
+            if fail_reason:
+                prompt += f"\n[실패/에러/이유] {fail_reason}"
+            if fail_history:
+                prompt += f"\n[실패 이력] {fail_history}"
+            if alerts:
+                prompt += f"\n[정책/알림 이력] {alerts}"
+            if external_knowledge:
+                prompt += f"\n[외부지식/온톨로지] {external_knowledge}"
 
-        prompt += "\n태스크 리스트:"
-        response = self.llm.generate(prompt)
+            prompt += "\n태스크 리스트:"
+            response = self.llm.generate(prompt)
 
-        # 간단 파싱(리스트 형태 추출)
-        try:
-            tasks = ast.literal_eval(response.strip())
-            if isinstance(tasks, list):
-                return tasks
-        except Exception:
-            pass
-        return [response.strip()]
+            # 간단 파싱(리스트 형태 추출)
+            try:
+                tasks = ast.literal_eval(response.strip())
+                if not isinstance(tasks, list):
+                    tasks = [response.strip()]
+            except Exception:
+                tasks = [response.strip()]
+
+        if tasks and all("테스트" not in t for t in tasks):
+            tasks.append("테스트 및 검증")
+        return tasks
 
 
 class DeveloperAgent(BaseAgent):
@@ -206,7 +213,7 @@ class SelfImprovementAgent(BaseAgent):
             if alerts:
                 analyze_prompt += f"\n[정책/알림 이력] {alerts}"
             if policy_triggered:
-                analyze_prompt += f"\n[정책 위반] True"
+                analyze_prompt += "\n[정책 위반] True"
             if external_knowledge:
                 analyze_prompt += f"\n[외부지식/온톨로지] {external_knowledge}"
 
