@@ -27,6 +27,8 @@ class APISettings(BaseModel):
 
     openai_api_key: Optional[str] = Field(None, description="OpenAI API Key")
     openai_model: str = Field("gpt-4", description="OpenAI Model")
+    anthropic_api_key: Optional[str] = Field(None, description="Anthropic API Key")
+    anthropic_model: str = Field("claude-3-sonnet-20240229", description="Anthropic Model")
     weaviate_url: Optional[str] = Field(None, description="Weaviate instance URL")
     neo4j_uri: Optional[str] = Field(None, description="Neo4j database URI")
     neo4j_user: Optional[str] = Field(None, description="Neo4j username")
@@ -36,6 +38,14 @@ class APISettings(BaseModel):
     def validate_openai_model(cls, v):
         """Validate OpenAI model name."""
         allowed_models = ["gpt-4", "gpt-3.5-turbo", "gpt-4-turbo"]
+        if v not in allowed_models:
+            raise ValueError(f"Model must be one of: {', '.join(allowed_models)}")
+        return v
+
+    @validator("anthropic_model")
+    def validate_anthropic_model(cls, v):
+        """Validate Anthropic model name."""
+        allowed_models = ["claude-3-sonnet-20240229", "claude-3-opus-20240229"]
         if v not in allowed_models:
             raise ValueError(f"Model must be one of: {', '.join(allowed_models)}")
         return v
@@ -135,6 +145,26 @@ def render_api_settings():
                     api_settings.get("openai_model", "gpt-4")
                 ),
                 help="Select the OpenAI model to use",
+            )
+
+        col3, col4 = st.columns(2)
+
+        with col3:
+            api_settings["anthropic_api_key"] = st.text_input(
+                "Anthropic API Key",
+                value=api_settings.get("anthropic_api_key", ""),
+                type="password",
+                help="Your Anthropic API key for Claude models",
+            )
+
+        with col4:
+            api_settings["anthropic_model"] = st.selectbox(
+                "Anthropic Model",
+                ["claude-3-sonnet-20240229", "claude-3-opus-20240229"],
+                index=["claude-3-sonnet-20240229", "claude-3-opus-20240229"].index(
+                    api_settings.get("anthropic_model", "claude-3-sonnet-20240229")
+                ),
+                help="Select the Anthropic model to use",
             )
 
     # Database Configuration
