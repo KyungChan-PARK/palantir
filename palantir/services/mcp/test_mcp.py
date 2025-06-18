@@ -1,6 +1,6 @@
 import json
 import subprocess
-from typing import Optional
+from typing import Dict, List, Optional, Union
 
 from palantir.core.backup import notify_slack
 
@@ -10,187 +10,79 @@ class TestMCP:
 
     def __init__(self, test_dir: Optional[str] = None):
         self.test_dir = test_dir or "tests"
+        self.test_results: List[Dict[str, Union[str, int, dict]]] = []
 
-    def run_tests(self):
-        # 기존 pytest 실행
-        result = subprocess.run(
-            [
-                "pytest",
-                "-q",
-                "--disable-warnings",
-                "--maxfail=1",
-                "--tb=short",
-                "--json-report",
-            ],
-            capture_output=True,
-            text=True,
-        )
-        return {
-            "type": "pytest",
-            "returncode": result.returncode,
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-        }
-
-    def run_flake8(self):
-        result = subprocess.run(
-            ["flake8", ".", "--format=json"], capture_output=True, text=True
-        )
+    def _run_command(self, cmd: List[str], test_type: str) -> Dict[str, Union[str, int, dict]]:
+        """테스트 명령어를 실행하고 결과를 표준화된 형식으로 반환"""
         try:
-            output = json.loads(result.stdout)
-        except Exception:
-            output = result.stdout
-        return {"type": "flake8", "returncode": result.returncode, "output": output}
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            output = None
+            
+            # JSON 출력 파싱 시도
+            if test_type in ["flake8", "bandit", "radon"]:
+                try:
+                    output = json.loads(result.stdout)
+                except json.JSONDecodeError:
+                    output = result.stdout
 
-    def run_mypy(self):
-        result = subprocess.run(
-            [
-                "mypy",
-                ".",
-                "--ignore-missing-imports",
-                "--show-error-codes",
-                "--no-color-output",
-            ],
-            capture_output=True,
-            text=True,
-        )
-        return {
-            "type": "mypy",
-            "returncode": result.returncode,
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-        }
+            return {
+                "type": test_type,
+                "returncode": result.returncode,
+                "stdout": result.stdout if output is None else None,
+                "stderr": result.stderr,
+                "output": output,
+                "success": result.returncode == 0
+            }
+        except Exception as e:
+            return {
+                "type": test_type,
+                "returncode": -1,
+                "stdout": None,
+                "stderr": str(e),
+                "output": None,
+                "success": False
+            }
 
-    def run_bandit(self):
-        result = subprocess.run(
-            ["bandit", "-r", ".", "-f", "json"], capture_output=True, text=True
-        )
-        try:
-            output = json.loads(result.stdout)
-        except Exception:
-            output = result.stdout
-        return {"type": "bandit", "returncode": result.returncode, "output": output}
+    def run_tests(self, test_types: Optional[List[str]] = None) -> List[Dict[str, Union[str, int, dict]]]:
+        """지정된 유형의 테스트들을 실행
+        
+        Args:
+            test_types: 실행할 테스트 유형 목록. None이면 모든 테스트 실행
+        """
+        if test_types is None:
+            test_types = ["pytest", "flake8", "mypy", "bandit", "radon"]
 
-    def run_radon(self):
-        result = subprocess.run(
-            ["radon", "cc", ".", "-j"], capture_output=True, text=True
-        )
-        try:
-            output = json.loads(result.stdout)
-        except Exception:
-            output = result.stdout
-        return {"type": "radon", "returncode": result.returncode, "output": output}
-
-    def run_all_checks(self):
-        results = []
-        results.append(self.run_tests())
-        results.append(self.run_flake8())
-        results.append(self.run_mypy())
-        results.append(self.run_bandit())
-        results.append(self.run_radon())
-        return results
-
-    def run_tests(self) -> str:
-        results = []
+        self.test_results = []
         alerts = []
-        # 1. pytest
-        pytest_result = subprocess.run(
-            ["pytest", self.test_dir, "-v"], capture_output=True, text=True
-        )
-        if pytest_result.returncode != 0:
-            results.append(
-                f"[테스트 실패] pytest\n{pytest_result.stdout}\n{pytest_result.stderr}"
-            )
-            alerts.append("pytest")
-        else:
-            results.append(f"[테스트 통과] pytest\n{pytest_result.stdout}")
-        # 2. flake8
-        flake8_result = subprocess.run(
-            ["flake8", "palantir/"], capture_output=True, text=True
-        )
-        if flake8_result.returncode != 0:
-            results.append(
-                f"[린트 실패] flake8\n{flake8_result.stdout}\n{flake8_result.stderr}"
-            )
-            alerts.append("flake8")
-        else:
-            results.append(f"[린트 통과] flake8\n{flake8_result.stdout}")
-        # 3. mypy
-        mypy_result = subprocess.run(
-            ["mypy", "palantir/"], capture_output=True, text=True
-        )
-        if mypy_result.returncode != 0:
-            results.append(
-                f"[정적분석 실패] mypy\n{mypy_result.stdout}\n{mypy_result.stderr}"
-            )
-            alerts.append("mypy")
-        else:
-            results.append(f"[정적분석 통과] mypy\n{mypy_result.stdout}")
-        # 4. bandit(보안)
-        try:
-            bandit_result = subprocess.run(
-                ["bandit", "-r", "palantir/", "-f", "json"],
-                capture_output=True,
-                text=True,
-            )
-            if bandit_result.returncode != 0 or '"HIGH"' in bandit_result.stdout:
-                results.append(
-                    f"[보안 취약점] bandit\n{bandit_result.stdout}\n{bandit_result.stderr}"
-                )
-                alerts.append("bandit")
-            else:
-                results.append(f"[보안 통과] bandit\n{bandit_result.stdout}")
-        except Exception as e:
-            results.append(f"[bandit 실행 오류] {str(e)}")
-            alerts.append("bandit-error")
-        # 5. radon(복잡도)
-        try:
-            radon_result = subprocess.run(
-                ["radon", "cc", "-n", "C", "palantir/"], capture_output=True, text=True
-            )
-            if "F" in radon_result.stdout or "E" in radon_result.stdout:
-                results.append(f"[복잡도 경고] radon\n{radon_result.stdout}")
-                alerts.append("radon")
-            else:
-                results.append(f"[복잡도 통과] radon\n{radon_result.stdout}")
-        except Exception as e:
-            results.append(f"[radon 실행 오류] {str(e)}")
-            alerts.append("radon-error")
-        # 6. safety(취약점)
-        try:
-            safety_result = subprocess.run(
-                ["safety", "check"], capture_output=True, text=True
-            )
-            if safety_result.returncode != 0:
-                results.append(
-                    f"[취약점 발견] safety\n{safety_result.stdout}\n{safety_result.stderr}"
-                )
-                alerts.append("safety")
-            else:
-                results.append(f"[취약점 없음] safety\n{safety_result.stdout}")
-        except Exception as e:
-            results.append(f"[safety 실행 오류] {str(e)}")
-            alerts.append("safety-error")
-        # 7. mutmut(뮤테이션)
-        try:
-            mutmut_result = subprocess.run(
-                ["mutmut", "run", "--paths-to-mutate", "palantir/"],
-                capture_output=True,
-                text=True,
-            )
-            if mutmut_result.returncode != 0:
-                results.append(
-                    f"[뮤테이션 테스트 실패] mutmut\n{mutmut_result.stdout}\n{mutmut_result.stderr}"
-                )
-                alerts.append("mutmut")
-            else:
-                results.append(f"[뮤테이션 테스트 통과] mutmut\n{mutmut_result.stdout}")
-        except Exception as e:
-            results.append(f"[mutmut 실행 오류] {str(e)}")
-            alerts.append("mutmut-error")
+
+        test_commands = {
+            "pytest": ["pytest", self.test_dir, "-v", "--disable-warnings", "--maxfail=1", "--tb=short", "--json-report"],
+            "flake8": ["flake8", ".", "--format=json"],
+            "mypy": ["mypy", ".", "--ignore-missing-imports", "--show-error-codes", "--no-color-output"],
+            "bandit": ["bandit", "-r", ".", "-f", "json"],
+            "radon": ["radon", "cc", ".", "-j"]
+        }
+
+        for test_type in test_types:
+            if test_type not in test_commands:
+                print(f"[경고] 알 수 없는 테스트 유형: {test_type}")
+                continue
+
+            result = self._run_command(test_commands[test_type], test_type)
+            self.test_results.append(result)
+            
+            if not result["success"]:
+                alerts.append(test_type)
+
         # 정책/가드레일/알림
         if alerts:
             notify_slack(
-                f"[PalantirAIP][테스트/정책 경고] 자동화 테스트/정책 위반 감지: {alerts}\n요약: {results[-1] if results else ''}"
+                f"[PalantirAIP][테스트/정책 경고] 자동화 테스트/정책 위반 감지: {alerts}\n"
+                f"요약: {self.test_results[-1] if self.test_results else ''}"
             )
-        return "\n\n".join(results)
+
+        return self.test_results
+
+    def get_last_results(self) -> List[Dict[str, Union[str, int, dict]]]:
+        """가장 최근 테스트 실행 결과 반환"""
+        return self.test_results

@@ -4,7 +4,7 @@ load_dotenv()
 
 import logging
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import (
     Depends,
@@ -24,12 +24,14 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from pydantic import BaseModel
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+import uvicorn
 
 import psutil
 
 from src.agents.base_agent import AgentConfig
 from src.core.mcp import MCP, MCPConfig
 from src.core.orchestrator import Orchestrator
+from src.core.dependency_graph import DependencyGraph
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -63,6 +65,8 @@ app.add_middleware(
 # API 키 인증
 API_KEY_NAME = "X-API-Key"
 api_key_header = APIKeyHeader(name=API_KEY_NAME)
+
+dependency_graph = DependencyGraph()
 
 
 class CommandRequest(BaseModel):
@@ -98,6 +102,20 @@ class SelfImproveApplyRequest(BaseModel):
 class SelfImproveRollbackRequest(BaseModel):
     file: str
     timestamp: str
+
+
+class AgentInfo(BaseModel):
+    """에이전트 정보"""
+    name: str
+    role: str
+    metadata: Optional[Dict[str, str]] = None
+
+
+class DependencyInfo(BaseModel):
+    """의존성 정보"""
+    source_id: str
+    target_id: str
+    dependency_type: Optional[str] = "default"
 
 
 async def verify_api_key(api_key: str = Security(api_key_header)):
@@ -377,3 +395,116 @@ async def metrics() -> Response:
     """Expose Prometheus metrics"""
     content = generate_latest()
     return Response(content=content, media_type=CONTENT_TYPE_LATEST)
+
+
+@app.post("/agents/{agent_id}")
+async def add_agent(agent_id: str, agent: AgentInfo):
+    """에이전트 추가"""
+    try:
+        dependency_graph.add_agent(
+            agent_id=agent_id,
+            name=agent.name,
+            role=agent.role,
+            metadata=agent.metadata,
+        )
+        return {"message": "Agent added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/dependencies")
+async def add_dependency(dependency: DependencyInfo):
+    """의존성 관계 추가"""
+    try:
+        dependency_graph.add_dependency(
+            source_id=dependency.source_id,
+            target_id=dependency.target_id,
+            dependency_type=dependency.dependency_type,
+        )
+        return {"message": "Dependency added successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/dependencies")
+async def remove_dependency(dependency: DependencyInfo):
+    """의존성 관계 제거"""
+    try:
+        dependency_graph.remove_dependency(
+            source_id=dependency.source_id,
+            target_id=dependency.target_id,
+        )
+        return {"message": "Dependency removed successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.put("/agents/{agent_id}/status")
+async def update_agent_status(
+    agent_id: str,
+    status: str,
+    metadata: Optional[Dict[str, str]] = None,
+):
+    """에이전트 상태 업데이트"""
+    try:
+        dependency_graph.update_agent_status(
+            agent_id=agent_id,
+            status=status,
+            metadata=metadata,
+        )
+        return {"message": "Status updated successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/agents/{agent_id}/dependencies")
+async def get_agent_dependencies(agent_id: str):
+    """에이전트의 의존성 목록 조회"""
+    try:
+        dependencies = dependency_graph.get_dependencies(agent_id)
+        dependents = dependency_graph.get_dependents(agent_id)
+        return {
+            "dependencies": list(dependencies),
+            "dependents": list(dependents),
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/graph/execution-order")
+async def get_execution_order():
+    """실행 순서 조회"""
+    try:
+        return {"order": dependency_graph.get_execution_order()}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/graph/critical-path")
+async def get_critical_path():
+    """크리티컬 패스 조회"""
+    return {"path": dependency_graph.get_critical_path()}
+
+
+@app.get("/graph/bottlenecks")
+async def get_bottlenecks():
+    """병목 지점 조회"""
+    return {"bottlenecks": dependency_graph.get_bottlenecks()}
+
+
+@app.get("/graph/validate")
+async def validate_dependencies():
+    """의존성 관계 유효성 검증"""
+    return {"issues": dependency_graph.validate_dependencies()}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
