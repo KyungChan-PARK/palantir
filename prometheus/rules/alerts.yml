@@ -62,4 +62,64 @@ groups:
           severity: warning
         annotations:
           summary: "높은 요청률 감지"
-          description: "5분 동안 초당 1000개 이상의 요청이 발생했습니다." 
+          description: "5분 동안 초당 1000개 이상의 요청이 발생했습니다."
+
+  - name: auth_alerts
+    rules:
+      - alert: HighLoginFailureRate
+        expr: |
+          sum(rate(auth_login_attempts_total{status="failure"}[5m])) 
+          / 
+          sum(rate(auth_login_attempts_total[5m])) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High login failure rate detected
+          description: Login failure rate is above 30% in the last 5 minutes
+
+      - alert: HighPermissionDenialRate
+        expr: |
+          sum(rate(auth_permission_checks_total{status="denied"}[5m])) 
+          / 
+          sum(rate(auth_permission_checks_total[5m])) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High permission denial rate detected
+          description: Permission denial rate is above 20% in the last 5 minutes
+
+      - alert: SlowAuthRequests
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(auth_request_duration_seconds_bucket[5m])) by (le, endpoint)
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Slow authentication requests detected
+          description: 95th percentile of auth request duration is above 1 second
+
+      - alert: HighTokenValidationFailureRate
+        expr: |
+          sum(rate(auth_token_validation_total{status=~"failure|expired"}[5m])) 
+          / 
+          sum(rate(auth_token_validation_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: High token validation failure rate
+          description: Token validation failure rate is above 10% in the last 5 minutes
+
+      - alert: UnauthorizedRoleUpdates
+        expr: |
+          sum(rate(auth_role_updates_total{status="failure"}[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Unauthorized role update attempts detected
+          description: Failed role update attempts detected in the last 5 minutes 

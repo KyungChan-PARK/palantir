@@ -3,6 +3,8 @@ from typing import Any, Dict, Optional
 
 import openai
 from openai import AzureOpenAI
+import anthropic
+from anthropic import Anthropic
 
 from .config import settings
 
@@ -26,6 +28,8 @@ class LLMManager:
                 api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
                 azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             )
+        elif settings.LLM_PROVIDER == "anthropic":
+            self.client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         elif settings.LLM_PROVIDER == "local":
             # 로컬 모델 설정
             pass
@@ -78,3 +82,42 @@ class LLMManager:
             return response.choices[0].message.content
         except Exception as e:
             raise Exception(f"텍스트 생성 실패: {str(e)}")
+
+    async def generate(self, prompt: str, system_message: Optional[str] = None, **kwargs) -> str:
+        """프롬프트를 LLM에 전달하고 응답을 반환합니다."""
+        if self.offline:
+            return "[오프라인 모드] LLM 응답을 생성할 수 없습니다."
+
+        try:
+            if settings.LLM_PROVIDER == "openai":
+                messages = []
+                if system_message:
+                    messages.append({"role": "system", "content": system_message})
+                messages.append({"role": "user", "content": prompt})
+                
+                response = await self.client.chat.completions.create(
+                    model=kwargs.get("model", settings.DEFAULT_MODEL),
+                    messages=messages,
+                    temperature=kwargs.get("temperature", 0.7),
+                    max_tokens=kwargs.get("max_tokens", 2000)
+                )
+                return response.choices[0].message.content
+
+            elif settings.LLM_PROVIDER == "anthropic":
+                message = await self.client.messages.create(
+                    model=kwargs.get("model", settings.ANTHROPIC_MODEL),
+                    max_tokens=kwargs.get("max_tokens", 2000),
+                    temperature=kwargs.get("temperature", 0.7),
+                    system=system_message if system_message else None,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                return message.content[0].text
+
+            elif settings.LLM_PROVIDER == "local":
+                # 로컬 모델 구현
+                pass
+
+        except Exception as e:
+            raise Exception(f"LLM 호출 중 오류 발생: {str(e)}")
+
+        return "[알 수 없는 LLM 제공자] 응답을 생성할 수 없습니다."

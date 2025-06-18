@@ -1,4 +1,10 @@
-import concurrent.futures
+"""개선된 멀티에이전트 오케스트레이션 시스템"""
+
+import asyncio
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Set
+from uuid import uuid4
 
 from palantir.core.backup import notify_slack
 from palantir.core.context_manager import ContextManager
@@ -15,12 +21,24 @@ from .agent_impls import (
     ReviewerAgent,
     SelfImprovementAgent,
 )
+from .shared_memory import SharedMemory
+from .self_improver import SelfImprover
+from .exceptions import OrchestratorError
+
+logger = logging.getLogger(__name__)
 
 
 class Orchestrator:
-    """에이전트와 MCP 계층을 연결하는 간소화된 오케스트레이터"""
+    """개선된 멀티에이전트 오케스트레이터"""
 
-    def __init__(self, execution_mode: str = "serial") -> None:
+    def __init__(
+        self,
+        execution_mode: str = "parallel",
+        max_concurrent_tasks: int = 5,
+        task_timeout: int = 300,
+        performance_threshold: float = 0.8,
+    ):
+        # 에이전트 초기화
         self.planner = PlannerAgent("Planner")
         self.developer = DeveloperAgent("Developer")
         self.reviewer = ReviewerAgent("Reviewer")
@@ -30,74 +48,173 @@ class Orchestrator:
         self.git_mcp = GitMCP()
         self.test_mcp = TestMCP()
         self.web_mcp = WebMCP()
-        self.execution_mode = execution_mode
+
+        # 시스템 컴포넌트 초기화
+        self.shared_memory = SharedMemory()
         self.context_manager = ContextManager()
+        self.execution_mode = execution_mode
+        self.max_concurrent_tasks = max_concurrent_tasks
+        self.task_timeout = task_timeout
+        self.semaphore = asyncio.Semaphore(max_concurrent_tasks)
 
-    def _process_task(self, task: str) -> TaskState:
-        """Developer → Reviewer → SelfImprover 흐름을 단일 태스크에 적용"""
+        # 자기개선 시스템 초기화
+        self.improvement_system = SelfImprover(
+            shared_memory=self.shared_memory,
+            context_manager=self.context_manager,
+            performance_threshold=performance_threshold
+        )
+
+    async def _store_task_result(
+        self,
+        task_id: str,
+        task: str,
+        result: Any,
+        agent: str,
+        status: str = "success",
+        error: Optional[str] = None,
+    ):
+        """작업 결과를 공유 메모리에 저장"""
+        await self.shared_memory.store(
+            key=f"task_result:{task_id}",
+            value={
+                "task": task,
+                "result": result,
+                "agent": agent,
+                "status": status,
+                "error": error,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+            type="task_result",
+            ttl=3600,  # 1시간 유지
+            tags={agent, status, "task_result"},
+            metadata={"task_id": task_id},
+        )
+
+    async def _process_task(self, task: str) -> TaskState:
+        """단일 태스크 처리 (Developer → Reviewer → SelfImprover)"""
+        task_id = str(uuid4())
         task_state = TaskState(task=task)
-        dev_ctx = self.context_manager.merge_contexts("Developer")
-        dev_result = self.developer.process([task], state=dev_ctx)
-        self.context_manager.update_agent_context(
-            "Developer", "last_result", dev_result
-        )
 
-        reviewer_ctx = self.context_manager.merge_contexts("Reviewer")
-        review = self.reviewer.process(dev_result, state=reviewer_ctx)
-        self.context_manager.update_agent_context("Reviewer", "last_review", review)
-
-        mcp_results = self.test_mcp.run_all_checks()
-        task_state.test_results.append({"mcp_checks": mcp_results})
-
-        fail_loop = 0
-        while any("테스트 실패" in r.get("test_result", "") for r in review):
-            if fail_loop >= 3:
-                notify_slack(f"[PalantirAIP][경고] 태스크 '{task}' 3회 연속 실패")
-                task_state.alert_sent = True
-                break
-            improver_ctx = self.context_manager.merge_contexts("SelfImprover")
-            improvement = self.self_improver.process(review, state=improver_ctx)
-            task_state.improvement_history.append(improvement)
-            self.context_manager.update_agent_context(
-                "SelfImprover", "last_improvement", improvement
-            )
-            review = self.reviewer.process(dev_result, state=reviewer_ctx)
-            fail_loop += 1
-
-        task_state.test_results.append(review)
-        task_state.fail_history.append(
-            ImprovementHistory(improvement=None, fail_loop=fail_loop, review=review)
-        )
-        return task_state
-
-    def run(self, user_input: str):
-        """사용자 입력을 받아 전체 태스크 플로우를 실행"""
         try:
-            print(f"[Planner] 사용자 요구: {user_input}")
+            async with self.semaphore:  # 동시 실행 제한
+                # Developer 단계
+                dev_ctx = self.context_manager.merge_contexts("Developer")
+                dev_result = await self.developer.process([task], state=dev_ctx)
+                await self._store_task_result(task_id, task, dev_result, "Developer")
+                self.context_manager.update_agent_context(
+                    "Developer", "last_result", dev_result
+                )
+
+                # Reviewer 단계
+                reviewer_ctx = self.context_manager.merge_contexts("Reviewer")
+                review = await self.reviewer.process(dev_result, state=reviewer_ctx)
+                await self._store_task_result(task_id, task, review, "Reviewer")
+                self.context_manager.update_agent_context(
+                    "Reviewer", "last_review", review
+                )
+
+                # 테스트 실행 및 자가 개선 루프
+                fail_loop = 0
+                while any(
+                    "테스트 실패" in r.get("test_result", "") for r in review
+                ) and fail_loop < 3:
+                    # 자기개선 시스템 실행
+                    improvement_result = await self.improvement_system.run_improvement_cycle()
+                    
+                    if improvement_result["status"] == "success":
+                        # 개선 사항이 있으면 적용
+                        if "improvements" in improvement_result:
+                            task_state.improvement_history.extend(
+                                improvement_result["improvements"]
+                            )
+                    
+                    # 개선된 상태에서 다시 리뷰
+                    review = await self.reviewer.process(dev_result, state=reviewer_ctx)
+                    fail_loop += 1
+
+                if fail_loop >= 3:
+                    logger.warning(f"Task '{task}' failed after 3 attempts")
+                    task_state.alert_sent = True
+
+                task_state.test_results.extend(review)
+                return task_state
+
+        except Exception as e:
+            error_msg = f"Task processing error: {str(e)}"
+            logger.error(error_msg)
+            await self._store_task_result(
+                task_id, task, None, "error", "failed", error_msg
+            )
+            raise OrchestratorError(error_msg)
+
+    async def run(self, user_input: str) -> Dict[str, Any]:
+        """사용자 입력에 대한 전체 오케스트레이션 실행"""
+        try:
+            logger.info(f"Starting orchestration for input: {user_input}")
             state = OrchestratorState(plan=[])
-            state.history.append(f"[Planner] 사용자 요구: {user_input}")
+            state.history.append(f"[Planner] User request: {user_input}")
+
+            # 계획 수립
             planner_ctx = self.context_manager.merge_contexts("Planner")
-            plan = self.planner.process(user_input, state=planner_ctx)
-            print(f"[Planner] 태스크 분해 결과: {plan}")
-            state.history.append(f"[Planner] 태스크 분해 결과: {plan}")
+            plan = await self.planner.process(user_input, state=planner_ctx)
+            logger.info(f"Task decomposition result: {plan}")
+            state.history.append(f"[Planner] Task decomposition: {plan}")
             state.plan = plan
 
+            # 태스크 실행 (병렬 또는 순차)
             if self.execution_mode == "parallel":
-                with concurrent.futures.ThreadPoolExecutor() as exe:
-                    futures = [exe.submit(self._process_task, t) for t in plan]
-                    for fut in concurrent.futures.as_completed(futures):
-                        state.results.append(fut.result())
+                tasks = [self._process_task(t) for t in plan]
+                state.results = await asyncio.gather(*tasks, return_exceptions=True)
             else:
                 for idx, task in enumerate(plan):
                     state.current_task_idx = idx
-                    state.results.append(self._process_task(task))
+                    try:
+                        result = await asyncio.wait_for(
+                            self._process_task(task),
+                            timeout=self.task_timeout
+                        )
+                        state.results.append(result)
+                    except asyncio.TimeoutError:
+                        logger.error(f"Task '{task}' timed out")
+                        state.results.append(
+                            TaskState(
+                                task=task,
+                                error="Task execution timed out",
+                                alert_sent=True
+                            )
+                        )
 
-            print(f"[Orchestrator] 전체 태스크 완료. 결과: {state.results}")
-            state.history.append(f"[Orchestrator] 전체 태스크 완료. 결과: {state.results}")
-            return state.results
-        except Exception as e:  # pragma: no cover - 런타임 예외 로깅
-            notify_slack(f"[PalantirAIP][오류] 오케스트레이터 예외 발생: {str(e)}")
-            print(f"[오케스트레이터 오류] {str(e)}")
-            if hasattr(state, "history"):
-                state.history.append(f"[오케스트레이터 오류] {str(e)}")
-            return {"error": str(e)}
+            # 결과 저장 및 반환
+            await self._store_task_result(
+                str(uuid4()),
+                "orchestration_complete",
+                state.dict(),
+                "Orchestrator"
+            )
+
+            # 전체 실행 후 자기개선 사이클 실행
+            improvement_result = await self.improvement_system.run_improvement_cycle()
+            if improvement_result["status"] == "success" and "improvements" in improvement_result:
+                state.history.append(
+                    f"[SelfImprover] Improvements applied: {len(improvement_result['improvements'])}"
+                )
+
+            logger.info("Orchestration completed successfully")
+            return {
+                "status": "success",
+                "state": state.dict(),
+                "improvements": improvement_result.get("improvements", [])
+            }
+
+        except Exception as e:
+            error_msg = f"Orchestration error: {str(e)}"
+            logger.error(error_msg)
+            await self._store_task_result(
+                str(uuid4()),
+                "orchestration_error",
+                {"error": str(e)},
+                "Orchestrator",
+                "failed",
+                error_msg
+            )
+            raise OrchestratorError(error_msg)
