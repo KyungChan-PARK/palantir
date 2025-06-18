@@ -122,4 +122,237 @@ groups:
           severity: warning
         annotations:
           summary: Unauthorized role update attempts detected
-          description: Failed role update attempts detected in the last 5 minutes 
+          description: Failed role update attempts detected in the last 5 minutes
+
+  - name: ai_agent_alerts
+    rules:
+      # 시스템 알림
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for 5 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / process_virtual_memory_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for 5 minutes"
+
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High request latency detected"
+          description: "95th percentile of request latency is above 1 second"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for 5 minutes"
+
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "Service has been down for more than 1 minute"
+
+      # 에이전트 알림
+      - alert: AgentHighErrorRate
+        expr: |
+          sum(rate(agent_errors_total[5m])) by (agent_name)
+          /
+          sum(rate(agent_tasks_total[5m])) by (agent_name) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High agent error rate"
+          description: "Agent {{ $labels.agent_name }} has error rate above 10% for 5 minutes"
+
+      - alert: AgentHighTaskLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(agent_task_processing_seconds_bucket[5m])) by (le, agent_name))
+          > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High agent task latency"
+          description: "Agent {{ $labels.agent_name }} has p95 task latency above 30s for 5 minutes"
+
+      - alert: AgentLowSuccessRate
+        expr: agent_task_success_rate < 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low agent success rate"
+          description: "Agent {{ $labels.agent_name }} has success rate below 90% for 5 minutes"
+
+      - alert: AgentHighMemoryUsage
+        expr: agent_memory_usage_bytes > 1e9  # 1GB
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High agent memory usage"
+          description: "Agent {{ $labels.agent_name }} is using more than 1GB memory"
+
+      - alert: AgentHighCPUUsage
+        expr: agent_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High agent CPU usage"
+          description: "Agent {{ $labels.agent_name }} CPU usage is above 80% for 5 minutes"
+
+      - alert: AgentNotResponding
+        expr: agent_status{status="error"} > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Agent not responding"
+          description: "Agent {{ $labels.agent_name }} is in error state"
+
+      - alert: AgentHighLLMLatency
+        expr: |
+          histogram_quantile(0.95, sum(rate(agent_llm_latency_seconds_bucket[5m])) by (le, agent_name, model))
+          > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High LLM latency"
+          description: "Agent {{ $labels.agent_name }} has p95 LLM latency above 5s for model {{ $labels.model }}"
+
+      - alert: AgentHighLLMErrorRate
+        expr: |
+          sum(rate(agent_llm_calls_total{status="failure"}[5m])) by (agent_name, model)
+          /
+          sum(rate(agent_llm_calls_total[5m])) by (agent_name, model) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High LLM error rate"
+          description: "Agent {{ $labels.agent_name }} has LLM error rate above 5% for model {{ $labels.model }}"
+
+  - name: agent_alerts
+    rules:
+      # 작업 처리 시간 알림
+      - alert: HighTaskProcessingTime
+        expr: histogram_quantile(0.95, sum(rate(agent_task_processing_time_seconds_bucket[5m])) by (le, agent_name)) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "작업 처리 시간이 높음 ({{ $value }}s)"
+          description: "에이전트 {{ $labels.agent_name }}의 작업 처리 시간(p95)이 10초를 초과했습니다."
+
+      # 메모리 사용량 알림
+      - alert: HighMemoryUsage
+        expr: agent_memory_bytes / 1024 / 1024 / 1024 > 1.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "메모리 사용량이 높음 ({{ $value | humanize }}GB)"
+          description: "에이전트 {{ $labels.agent_name }}의 메모리 사용량이 1.5GB를 초과했습니다."
+
+      # CPU 사용량 알림
+      - alert: HighCPUUsage
+        expr: agent_cpu_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU 사용량이 높음 ({{ $value }}%)"
+          description: "에이전트 {{ $labels.agent_name }}의 CPU 사용량이 80%를 초과했습니다."
+
+      # LLM 응답 지연 알림
+      - alert: HighLLMLatency
+        expr: histogram_quantile(0.95, sum(rate(agent_llm_latency_seconds_bucket[5m])) by (le, agent_name, model)) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM 응답 지연이 높음 ({{ $value }}s)"
+          description: "에이전트 {{ $labels.agent_name }}의 {{ $labels.model }} 모델 응답 지연(p95)이 5초를 초과했습니다."
+
+      # 작업 실패율 알림
+      - alert: HighTaskFailureRate
+        expr: (1 - agent_task_success_rate) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "작업 실패율이 높음 ({{ $value | humanize }}%)"
+          description: "에이전트 {{ $labels.agent_name }}의 작업 실패율이 10%를 초과했습니다."
+
+      # 성능 점수 알림
+      - alert: LowPerformanceScore
+        expr: agent_performance_score < 0.7
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "성능 점수가 낮음 ({{ $value }})"
+          description: "에이전트 {{ $labels.agent_name }}의 성능 점수가 0.7 미만입니다."
+
+      # 병목 지점 알림
+      - alert: HighBottleneckCount
+        expr: agent_bottleneck_count > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "병목 지점이 많음 ({{ $value }}개)"
+          description: "에이전트 {{ $labels.agent_name }}의 병목 지점이 2개를 초과했습니다."
+
+      # 메시지 큐 크기 알림
+      - alert: HighMessageQueueSize
+        expr: agent_message_queue_size > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "메시지 큐 크기가 큼 ({{ $value }}개)"
+          description: "에이전트 {{ $labels.agent_name }}의 {{ $labels.queue_type }} 큐 크기가 1000개를 초과했습니다."
+
+      # 메시지 처리 지연 알림
+      - alert: HighMessageProcessingLatency
+        expr: histogram_quantile(0.95, sum(rate(agent_message_processing_latency_seconds_bucket[5m])) by (le, agent_name, message_type)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "메시지 처리 지연이 높음 ({{ $value }}s)"
+          description: "에이전트 {{ $labels.agent_name }}의 {{ $labels.message_type }} 메시지 처리 지연(p95)이 1초를 초과했습니다."
+
+      # 크리티컬 패스 길이 알림
+      - alert: LongCriticalPath
+        expr: agent_critical_path_length > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "크리티컬 패스가 김 ({{ $value }}단계)"
+          description: "에이전트 {{ $labels.agent_name }}의 크리티컬 패스 길이가 10단계를 초과했습니다." 

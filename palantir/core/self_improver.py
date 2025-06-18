@@ -14,6 +14,7 @@ from .models.state import (
     ImprovementSuggestion,
     ImprovementResult
 )
+from ..services.mcp.test_mcp import TestMCP
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +37,7 @@ class SelfImprover:
         self.shared_memory = shared_memory
         self.context_manager = context_manager
         self.performance_threshold = performance_threshold
+        self.test_mcp = TestMCP()
 
     async def analyze_performance(self) -> PerformanceMetrics:
         """현재 성능을 분석하고 지표를 반환
@@ -79,8 +81,9 @@ class SelfImprover:
             else:
                 accuracy = error_rate = avg_time = avg_memory = 0.0
 
-            # 테스트 커버리지는 별도로 계산 필요
-            test_coverage = await self._calculate_test_coverage()
+            # 테스트 커버리지는 TestMCP를 통해 계산
+            test_results = self.test_mcp.run_tests()
+            test_coverage = sum(1 for r in test_results if r["success"]) / len(test_results) if test_results else 0.0
 
             return PerformanceMetrics(
                 response_time=avg_time,
@@ -206,29 +209,46 @@ class SelfImprover:
                 # 개선 사항 적용 후 성능 측정
                 after_metrics = await self.analyze_performance()
 
-                # 개선 이력 저장
-                history = ImprovementHistory(
-                    component=suggestion.component,
-                    change_type=suggestion.target,
-                    description=suggestion.suggested_change,
-                    metrics_before=before_metrics.dict(),
-                    metrics_after=after_metrics.dict(),
-                    success=True
-                )
-                await self.shared_memory.store(
-                    key=f"improvement:{datetime.now().isoformat()}",
-                    value=history.dict(),
-                    type="improvement_history",
-                    tags={"improvement_cycle", suggestion.target},
-                    ttl=86400 * 30  # 30일 보관
-                )
+                # 테스트 실행
+                test_results = self.test_mcp.run_tests()
+                test_success = all(result["success"] for result in test_results)
 
-                results.append(
-                    ImprovementResult(
-                        improvement=suggestion.dict(),
-                        review="개선 사항이 성공적으로 적용됨"
+                if test_success:
+                    # 개선 이력 저장
+                    history = ImprovementHistory(
+                        component=suggestion.component,
+                        change_type=suggestion.target,
+                        description=suggestion.suggested_change,
+                        metrics_before=before_metrics.dict(),
+                        metrics_after=after_metrics.dict(),
+                        success=True
                     )
-                )
+                    await self.shared_memory.store(
+                        key=f"improvement:{datetime.now().isoformat()}",
+                        value=history.dict(),
+                        type="improvement_history",
+                        tags={"improvement_cycle", suggestion.target},
+                        ttl=86400 * 30  # 30일 보관
+                    )
+
+                    results.append(
+                        ImprovementResult(
+                            improvement=suggestion.dict(),
+                            review="개선 사항이 성공적으로 적용됨",
+                            test_results=test_results
+                        )
+                    )
+                else:
+                    # 테스트 실패 시 롤백
+                    await self._rollback_improvement(suggestion)
+                    results.append(
+                        ImprovementResult(
+                            improvement=suggestion.dict(),
+                            fail_loop=1,
+                            review="테스트 실패로 롤백됨",
+                            test_results=test_results
+                        )
+                    )
 
             except Exception as e:
                 logger.error(f"개선 사항 적용 중 오류 발생: {str(e)}")
@@ -303,15 +323,6 @@ class SelfImprover:
             metrics.test_coverage >= 0.9
         ])
 
-    async def _calculate_test_coverage(self) -> float:
-        """테스트 커버리지 계산
-
-        Returns:
-            float: 테스트 커버리지 (0-1 사이 값)
-        """
-        # TODO: 실제 테스트 커버리지 계산 로직 구현
-        return 0.85
-
     async def _apply_single_improvement(self, suggestion: ImprovementSuggestion):
         """단일 개선 사항 적용
 
@@ -319,4 +330,13 @@ class SelfImprover:
             suggestion: 적용할 개선 제안
         """
         # TODO: 실제 개선 사항 적용 로직 구현
+        await asyncio.sleep(0.1)  # 임시 구현
+
+    async def _rollback_improvement(self, suggestion: ImprovementSuggestion):
+        """개선 사항 롤백
+
+        Args:
+            suggestion: 롤백할 개선 제안
+        """
+        # TODO: 실제 롤백 로직 구현
         await asyncio.sleep(0.1)  # 임시 구현 
