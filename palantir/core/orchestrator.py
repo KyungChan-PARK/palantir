@@ -147,7 +147,7 @@ class Orchestrator:
             )
             raise OrchestratorError(error_msg)
 
-    async def run(self, user_input: str) -> Dict[str, Any]:
+    async def run(self, user_input: str) -> OrchestratorState:
         """사용자 입력에 대한 전체 오케스트레이션 실행"""
         try:
             logger.info(f"Starting orchestration for input: {user_input}")
@@ -184,7 +184,7 @@ class Orchestrator:
                             )
                         )
 
-            # 결과 저장 및 반환
+            # 결과 저장
             await self._store_task_result(
                 str(uuid4()),
                 "orchestration_complete",
@@ -199,12 +199,10 @@ class Orchestrator:
                     f"[SelfImprover] Improvements applied: {len(improvement_result['improvements'])}"
                 )
 
+            # 상태 저장
+            self.state = state
             logger.info("Orchestration completed successfully")
-            return {
-                "status": "success",
-                "state": state.dict(),
-                "improvements": improvement_result.get("improvements", [])
-            }
+            return state
 
         except Exception as e:
             error_msg = f"Orchestration error: {str(e)}"

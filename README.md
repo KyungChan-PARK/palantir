@@ -1,4 +1,7 @@
 # Palantir
+
+[![Documentation Status](https://github.com/KyungChan-PARK/palantir/actions/workflows/docs.yml/badge.svg)](https://kyungchan-park.github.io/palantir/)
+
 ![coverage](coverage.svg)
 
 자가개선형 멀티에이전트 오케스트레이션 플랫폼
