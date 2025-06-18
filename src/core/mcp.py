@@ -3,10 +3,12 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import aiohttp
 from pydantic import BaseModel, Field
+
+from palantir.services.mcp.test_mcp import TestMCP
 
 
 class MCPConfig(BaseModel):
@@ -25,6 +27,7 @@ class MCP:
         self.config = config
         self.session: Optional[aiohttp.ClientSession] = None
         self.logger = logging.getLogger(__name__)
+        self.test_mcp = TestMCP()
 
     async def __aenter__(self):
         """비동기 컨텍스트 매니저 진입"""
@@ -129,11 +132,23 @@ class MCP:
             "git_op", op=op, repo_path=repo_path, args=args or {}
         )
 
-    async def test_run(self, test_type: str = "pytest", target: str = "tests/") -> dict:
-        """테스트 실행 (예: pytest, unittest 등)"""
-        return await self.execute_command(
-            "test_run", test_type=test_type, target=target
-        )
+    async def test_run(self, test_types: Optional[List[str]] = None, target: str = "tests/") -> Dict[str, List[Dict[str, Union[str, int, dict]]]]:
+        """테스트 실행
+        
+        Args:
+            test_types: 실행할 테스트 유형 목록 (예: ["pytest", "flake8"])
+            target: 테스트 대상 디렉토리
+            
+        Returns:
+            테스트 결과 딕셔너리
+        """
+        self.test_mcp = TestMCP(test_dir=target)
+        results = self.test_mcp.run_tests(test_types)
+        
+        return {
+            "results": results,
+            "success": all(result["success"] for result in results)
+        }
 
     async def web_search(self, query: str, top_k: int = 3) -> dict:
         """웹 검색 (예: Bing, Google 등)"""
