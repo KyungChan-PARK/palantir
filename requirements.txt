@@ -160,3 +160,4 @@ websockets==15.0.1
 wheel==0.42.0
 zipp==3.23.0
 zope.interface==6.1
+psutil==7.0.0

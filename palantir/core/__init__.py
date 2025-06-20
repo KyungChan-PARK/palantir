@@ -1,54 +1,5 @@
-"""
-Core 패키지
-"""
+"""Core package lightweight initialization."""
 
-from . import (
-    agents,  # package exposing agent classes
-    auth,
-    backup,
-    cache,
-    clip_embed,
-    config,
-    database,
-    llm_manager,
-    ontology,
-    ontology_sync,
-    pipeline,
-    pipeline_schema,
-    pipeline_transpiler,
-    policy_guard,
-    preprocessor_factory,
-    report,
-    scheduler,
-    security,
-    transpiler,
-    user,
-    user_api,
-    visualization,
-    weaviate_store,
-)
+from . import agents
 
-__all__ = [
-    "preprocessor_factory",
-    "transpiler",
-    "llm_manager",
-    "policy_guard",
-    "visualization",
-    "auth",
-    "ontology",
-    "pipeline",
-    "report",
-    "weaviate_store",
-    "scheduler",
-    "security",
-    "user",
-    "user_api",
-    "config",
-    "backup",
-    "ontology_sync",
-    "database",
-    "pipeline_transpiler",
-    "pipeline_schema",
-    "cache",
-    "clip_embed",
-]
+__all__ = ["agents"]
