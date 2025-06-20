@@ -79,7 +79,10 @@ async def get_status():
     try:
         driver = GraphDatabase.driver(
             neo4j_url,
-            auth=(os.getenv("NEO4J_USER", "neo4j"), os.getenv("NEO4J_PASS", "test")),
+            auth=(
+                os.getenv("NEO4J_USER", "neo4j"),
+                os.getenv("NEO4J_PASSWORD", "test"),
+            ),
         )
         with driver.session() as session:
             session.run("RETURN 1")

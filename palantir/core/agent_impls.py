@@ -8,9 +8,7 @@ import os
 import shutil
 from typing import Any, Dict, List, Optional, Tuple
 
-from pydantic import BaseModel
-
-from ..core.agents.base import AgentConfig, BaseAgent
+from ..core.agents.base import BaseAgent
 from palantir.services.mcp.llm_mcp import LLMMCP
 from palantir.services.mcp.file_mcp import FileMCP
 from palantir.services.mcp.git_mcp import GitMCP
@@ -166,8 +164,8 @@ class ReviewerAgent(BaseAgent):
 class SelfImprovementAgent(BaseAgent):
     """자가 개선 에이전트"""
 
-    def __init__(self, config: AgentConfig):
-        super().__init__(config)
+    def __init__(self, name: str):
+        super().__init__(name)
         self.test_mcp = TestMCP()
         self.performance_threshold = 0.8
 

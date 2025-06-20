@@ -99,7 +99,7 @@ class Orchestrator:
             async with self.semaphore:  # 동시 실행 제한
                 # Developer 단계
                 dev_ctx = self.context_manager.merge_contexts("Developer")
-                dev_result = await self.developer.process([task], state=dev_ctx)
+                dev_result = self.developer.process([task], state=dev_ctx)
                 await self._store_task_result(task_id, task, dev_result, "Developer")
                 self.context_manager.update_agent_context(
                     "Developer", "last_result", dev_result
@@ -107,7 +107,7 @@ class Orchestrator:
 
                 # Reviewer 단계
                 reviewer_ctx = self.context_manager.merge_contexts("Reviewer")
-                review = await self.reviewer.process(dev_result, state=reviewer_ctx)
+                review = self.reviewer.process(dev_result, state=reviewer_ctx)
                 await self._store_task_result(task_id, task, review, "Reviewer")
                 self.context_manager.update_agent_context(
                     "Reviewer", "last_review", review
@@ -129,7 +129,7 @@ class Orchestrator:
                             )
                     
                     # 개선된 상태에서 다시 리뷰
-                    review = await self.reviewer.process(dev_result, state=reviewer_ctx)
+                    review = self.reviewer.process(dev_result, state=reviewer_ctx)
                     fail_loop += 1
 
                 if fail_loop >= 3:
@@ -156,7 +156,7 @@ class Orchestrator:
 
             # 계획 수립
             planner_ctx = self.context_manager.merge_contexts("Planner")
-            plan = await self.planner.process(user_input, state=planner_ctx)
+            plan = self.planner.process(user_input, state=planner_ctx)
             logger.info(f"Task decomposition result: {plan}")
             state.history.append(f"[Planner] Task decomposition: {plan}")
             state.plan = plan
