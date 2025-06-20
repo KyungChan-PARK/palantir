@@ -22,7 +22,6 @@ wheels/
 MANIFEST
 
 # Virtual Environment
-.env
 .venv
 env/
 venv/
@@ -75,7 +74,6 @@ wheels/
 .python-version
 
 # Environments
-.env
 .venv
 env/
 venv/
@@ -88,4 +86,14 @@ venv.bak/
 
 # Misc
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Logs and coverage
+logs/
+*.log
+coverage.svg
+coverage.xml
+.coverage
+
+# Databases
+*.db 

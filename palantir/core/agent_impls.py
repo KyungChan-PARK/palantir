@@ -6,9 +6,11 @@ import ast
 import json
 import os
 import shutil
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
-from src.agents.base_agent import AgentConfig, BaseAgent
+from pydantic import BaseModel
+
+from ..core.agents.base import AgentConfig, BaseAgent
 from palantir.services.mcp.llm_mcp import LLMMCP
 from palantir.services.mcp.file_mcp import FileMCP
 from palantir.services.mcp.git_mcp import GitMCP

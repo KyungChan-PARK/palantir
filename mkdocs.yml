@@ -1,0 +1,44 @@
+site_name: Palantir Docs
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - API:
+    - Overview: api/index.md
+    - Reference: api/API_REFERENCE.md
+  - Architecture:
+    - Features: architecture/FEATURE_PRD.md
+    - Policies: architecture/POLICY.md
+  - Development:
+    - Contributing: development/CONTRIBUTING.md
+    - Authentication: development/AUTH.md
+    - Troubleshooting: development/troubleshooting.md
+  - Guides:
+    - FAQ: guides/FAQ.md
+    - Usage Examples: guides/USAGE_EXAMPLES.md
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - admonition
+  - footnotes
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - minify:
+      minify_html: true

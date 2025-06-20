@@ -2,59 +2,163 @@
 description: Palantir LLM evaluation scenarios
 
 prompts:
-  - 'Repeat: {{input}}'
+  - name: api_endpoint
+    text: |
+      [시스템 맥락]
+      - Framework: FastAPI (Python)
+      - Auth: JWT Bearer token
+      - Database: PostgreSQL via SQLAlchemy
+
+      [요청]
+      새로운 API 엔드포인트 `{{endpoint}}` 를 구현하시오.
+
+      [상세 요구사항]
+      - HTTP 메소드: {{method}}
+      - 설명: {{description}}
+      - 입력 파라미터: {{params}}
+      - 출력: {{output}}
+      - 기타: {{other_requirements}}
+
+  - name: code_review
+    text: |
+      [코드 리뷰 요청]
+      아래 코드를 검토하고 개선점을 제안하시오.
+
+      [코드]
+      {{code}}
+
+      [컨텍스트]
+      {{context}}
+
+      다음 관점에서 검토해 주세요:
+      1. 코드 품질 및 가독성
+      2. 성능 및 확장성
+      3. 보안 및 안정성
+      4. 테스트 커버리지
+
+  - name: bug_fix
+    text: |
+      [버그 리포트]
+      {{bug_description}}
+
+      [에러 로그]
+      {{error_log}}
+
+      [관련 코드]
+      {{code}}
+
+      [컨텍스트]
+      {{context}}
+
+      다음 단계로 분석해 주세요:
+      1. 근본 원인 분석
+      2. 해결 방안 제시
+      3. 재발 방지 대책
+
+  - name: refactoring
+    text: |
+      [리팩토링 요청]
+      {{refactoring_goal}}
+
+      [현재 코드]
+      {{code}}
+
+      [컨텍스트]
+      {{context}}
+
+      다음 단계로 진행해 주세요:
+      1. 현재 구조 분석
+      2. 개선점 식별
+      3. 리팩토링 계획 수립
+      4. 단계별 변경 제안
 
 providers:
+  - id: openai:gpt-4-turbo-preview
+    config:
+      temperature: 0.7
+  - id: anthropic:claude-3-sonnet
+    config:
+      temperature: 0.7
   - id: file://tests/llm_eval/provider.py
 
 tests:
-  - vars:
-      input: sample1
+  - description: API 엔드포인트 생성 테스트
+    vars:
+      endpoint: /api/v1/items
+      method: GET
+      description: 아이템 목록 조회
+      params: page, limit, search_query
+      output: Item[] (JSON)
+      other_requirements: 페이지네이션 적용, 검색어로 필터링
     assert:
       - type: contains
-        value: sample1
-  - vars:
-      input: sample2
+        value: FastAPI
+      - type: contains
+        value: router
+      - type: contains
+        value: pagination
+      - type: contains
+        value: search
+      - type: contains
+        value: Response[List[Item]]
+
+  - description: 코드 리뷰 테스트
+    vars:
+      code: |
+        def process_items(items):
+            result = []
+            for i in items:
+                if i > 0:
+                    result.append(i * 2)
+            return result
+      context: 성능 최적화가 필요한 데이터 처리 함수
     assert:
       - type: contains
-        value: sample2
-  - vars:
-      input: sample3
+        value: 리스트 컴프리헨션
+      - type: contains
+        value: 타입 힌트
+      - type: contains
+        value: 문서화
+
+  - description: 버그 수정 테스트
+    vars:
+      bug_description: 데이터베이스 연결이 간헐적으로 끊김
+      error_log: ConnectionError: Connection refused
+      code: |
+        async def get_db():
+            db = await connect_db()
+            try:
+                yield db
+            finally:
+                await db.close()
+      context: FastAPI 의존성 주입에 사용되는 데이터베이스 연결 함수
     assert:
       - type: contains
-        value: sample3
-  - vars:
-      input: sample4
+        value: 재시도
+      - type: contains
+        value: 연결 풀
+      - type: contains
+        value: 타임아웃
+
+  - description: 리팩토링 테스트
+    vars:
+      refactoring_goal: 단일 책임 원칙을 적용하여 코드 개선
+      code: |
+        class UserService:
+            def create_user(self, data):
+                # 사용자 생성
+                pass
+            def send_email(self, user):
+                # 이메일 전송
+                pass
+            def log_activity(self, user):
+                # 활동 로깅
+                pass
+      context: 사용자 관리 서비스 클래스
     assert:
       - type: contains
-        value: sample4
-  - vars:
-      input: sample5
-    assert:
+        value: EmailService
       - type: contains
-        value: sample5
-  - vars:
-      input: sample6
-    assert:
+        value: ActivityLogger
       - type: contains
-        value: sample6
-  - vars:
-      input: sample7
-    assert:
-      - type: contains
-        value: sample7
-  - vars:
-      input: sample8
-    assert:
-      - type: contains
-        value: sample8
-  - vars:
-      input: sample9
-    assert:
-      - type: contains
-        value: sample9
-  - vars:
-      input: sample10
-    assert:
-      - type: contains
-        value: sample10
+        value: 의존성 주입

@@ -30,7 +30,7 @@ class TimeoutError(OrchestratorError):
     pass
 
 
-class SelfImprovementError(OrchestratorError):
+class SelfImprovementError(Exception):
     """자기개선 시스템 관련 예외"""
     pass
 

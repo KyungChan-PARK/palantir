@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 from .shared_memory import SharedMemory
 from .context_manager import ContextManager
@@ -40,50 +40,53 @@ class SelfImprover:
         self.test_mcp = TestMCP()
 
     async def analyze_performance(self) -> PerformanceMetrics:
-        """현재 성능을 분석하고 지표를 반환
+        """현재 성능 분석
 
         Returns:
             PerformanceMetrics: 성능 지표
         """
         try:
             # 최근 작업 결과 조회
-            results = await self.shared_memory.search_by_tags(
+            task_results = await self.shared_memory.search(
+                type="task_result",
                 tags={"task_result"},
-                match_all=True
+                limit=10
             )
 
-            if not results:
-                return PerformanceMetrics()
+            if not task_results:
+                return PerformanceMetrics(
+                    response_time=0.0,
+                    accuracy=1.0,
+                    memory_usage=0,
+                    error_rate=0.0,
+                    test_coverage=1.0
+                )
 
             # 성능 지표 계산
             total_time = 0.0
-            total_memory = 0.0
+            total_memory = 0
             error_count = 0
             success_count = 0
 
-            for result in results:
-                data = result.value
-                if data["status"] == "success":
+            for result in task_results:
+                if result["status"] == "success":
                     success_count += 1
-                    if "processing_time" in data:
-                        total_time += data["processing_time"]
-                    if "memory_usage" in data:
-                        total_memory += data["memory_usage"]
-                elif data["status"] == "error":
+                    if result["processing_time"]:
+                        total_time += result["processing_time"]
+                    if result["memory_usage"]:
+                        total_memory += result["memory_usage"]
+                else:
                     error_count += 1
 
-            total_count = len(results)
-            if total_count > 0:
-                accuracy = success_count / total_count
-                error_rate = error_count / total_count
-                avg_time = total_time / success_count if success_count > 0 else 0
-                avg_memory = total_memory / success_count if success_count > 0 else 0
-            else:
-                accuracy = error_rate = avg_time = avg_memory = 0.0
+            total_count = len(task_results)
+            avg_time = total_time / success_count if success_count > 0 else 0
+            avg_memory = total_memory / success_count if success_count > 0 else 0
+            accuracy = success_count / total_count if total_count > 0 else 1.0
+            error_rate = error_count / total_count if total_count > 0 else 0.0
 
-            # 테스트 커버리지는 TestMCP를 통해 계산
-            test_results = self.test_mcp.run_tests()
-            test_coverage = sum(1 for r in test_results if r["success"]) / len(test_results) if test_results else 0.0
+            # 테스트 커버리지 조회
+            test_results = self.test_mcp.get_coverage()
+            test_coverage = test_results.get("coverage", 1.0)
 
             return PerformanceMetrics(
                 response_time=avg_time,
@@ -144,9 +147,9 @@ class SelfImprover:
             suggestions.append(
                 ImprovementSuggestion(
                     target="code",
-                    component="memory_manager",
-                    current_state=f"현재 메모리 사용량: {metrics.memory_usage:.0f}MB",
-                    suggested_change="메모리 캐싱 최적화",
+                    component="memory_management",
+                    current_state=f"현재 메모리 사용량: {metrics.memory_usage}MB",
+                    suggested_change="메모리 캐시 최적화",
                     reason="메모리 사용량이 목표치를 초과",
                     priority=3,
                     estimated_impact={"memory_usage": -256}
@@ -158,11 +161,11 @@ class SelfImprover:
             suggestions.append(
                 ImprovementSuggestion(
                     target="code",
-                    component="error_handler",
+                    component="error_handling",
                     current_state=f"현재 에러율: {metrics.error_rate:.2%}",
                     suggested_change="에러 처리 로직 강화",
                     reason="에러율이 목표치를 초과",
-                    priority=4,
+                    priority=1,
                     estimated_impact={"error_rate": -0.03}
                 )
             )
@@ -172,17 +175,15 @@ class SelfImprover:
             suggestions.append(
                 ImprovementSuggestion(
                     target="test",
-                    component="test_suite",
+                    component="test_coverage",
                     current_state=f"현재 테스트 커버리지: {metrics.test_coverage:.2%}",
                     suggested_change="테스트 케이스 추가",
                     reason="테스트 커버리지가 목표치에 미달",
-                    priority=5,
+                    priority=2,
                     estimated_impact={"test_coverage": 0.1}
                 )
             )
 
-        # 우선순위 순으로 정렬
-        suggestions.sort(key=lambda x: x.priority)
         return suggestions
 
     async def apply_improvements(
